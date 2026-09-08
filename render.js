@@ -1,18 +1,37 @@
+/* =========================
+   RENDER TASKS
+========================= */
+
 export function renderTasks(tasks) {
 
-    const taskList = document.getElementById("taskList");
-    const emptyState = document.getElementById("emptyState");
-    const taskCount = document.getElementById("taskCount");
+    const taskList =
+        document.getElementById("taskList");
+
+    const emptyState =
+        document.getElementById("emptyState");
+
+    const taskCount =
+        document.getElementById("taskCount");
+
+
+    /* =========================
+       CLEAR OLD TASKS
+    ========================= */
 
     taskList.innerHTML = "";
 
 
-    /* TASK COUNT */
+    /* =========================
+       TASK COUNT
+    ========================= */
 
-    taskCount.textContent = tasks.length;
+    taskCount.textContent =
+        tasks.length;
 
 
-    /* EMPTY STATE */
+    /* =========================
+       EMPTY STATE
+    ========================= */
 
     if (tasks.length === 0) {
 
@@ -22,65 +41,113 @@ export function renderTasks(tasks) {
 
     }
 
+
     emptyState.hidden = true;
 
 
-    /* CREATE TASK CARDS */
+    /* =========================
+       CREATE TASK CARDS
+    ========================= */
 
-    tasks.forEach((task, index) => {
+    tasks.forEach(
+        (task, index) => {
 
-        const li = document.createElement("li");
-
-        li.className = "task-item";
-
-        li.draggable = true;
-
-        li.dataset.id = task.id;
-
-        li.dataset.index = index;
+            const li =
+                document.createElement("li");
 
 
-        /* CATEGORY CLASS */
+            /* =====================
+               TASK ITEM
+            ===================== */
 
-        const categoryClass =
-            task.category.toLowerCase();
+            li.className =
+                "task-item";
 
 
-        li.innerHTML = `
+            /*
+               Make the entire task card
+               draggable.
+            */
 
-            <div class="drag-handle">
-                ⋮⋮
-            </div>
+            li.setAttribute(
+                "draggable",
+                "true"
+            );
 
-            <div class="task-content">
 
-                <strong class="task-title">
-                    ${escapeHTML(task.text)}
-                </strong>
+            /*
+               Store task information
+               inside data attributes.
+            */
 
-                <div class="task-meta">
+            li.dataset.id =
+                task.id;
 
-                    <span class="category-badge category-${categoryClass}">
-                        ${escapeHTML(task.category)}
-                    </span>
+            li.dataset.index =
+                index;
+
+
+            /* =====================
+               CATEGORY CLASS
+            ===================== */
+
+            const categoryClass =
+                task.category
+                    .toLowerCase();
+
+
+            /* =====================
+               TASK HTML
+            ===================== */
+
+            li.innerHTML = `
+
+                <div
+                    class="drag-handle"
+                    aria-hidden="true"
+                >
+                    ⋮⋮
+                </div>
+
+
+                <div class="task-content">
+
+                    <strong class="task-title">
+                        ${escapeHTML(task.text)}
+                    </strong>
+
+
+                    <div class="task-meta">
+
+                        <span
+                            class="category-badge category-${categoryClass}"
+                        >
+                            ${escapeHTML(task.category)}
+                        </span>
+
+                    </div>
 
                 </div>
 
-            </div>
 
-            <button
-                class="delete-btn"
-                aria-label="Delete ${escapeHTML(task.text)}"
-            >
-                Delete
-            </button>
+                <button
+                    class="delete-btn"
+                    aria-label="Delete ${escapeHTML(task.text)}"
+                >
+                    Delete
+                </button>
 
-        `;
+            `;
 
 
-        taskList.appendChild(li);
+            /* =====================
+               ADD TO TASK LIST
+            ===================== */
 
-    });
+            taskList.appendChild(li);
+
+        }
+    );
 
 }
 
@@ -91,9 +158,13 @@ export function renderTasks(tasks) {
 
 function escapeHTML(text) {
 
-    const div = document.createElement("div");
+    const div =
+        document.createElement("div");
 
-    div.textContent = text;
+
+    div.textContent =
+        text;
+
 
     return div.innerHTML;
 
