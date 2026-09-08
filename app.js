@@ -45,6 +45,9 @@ const filterButtons =
         "#categoryFilters button"
     );
 
+const taskList =
+    document.getElementById("taskList");
+
 const exportBtn =
     document.getElementById("exportBtn");
 
@@ -59,7 +62,7 @@ const undoBtn =
 
 
 /* =========================
-   INITIAL RENDER
+   INITIAL UI
 ========================= */
 
 updateUI();
@@ -72,17 +75,11 @@ updateUI();
 function addTask(text, category) {
 
     const newTask = {
-
         id: crypto.randomUUID(),
-
         text: text,
-
         category: category,
-
         done: false,
-
         createdAt: Date.now()
-
     };
 
 
@@ -92,11 +89,9 @@ function addTask(text, category) {
 
     updateUI();
 
-
     taskInput.value = "";
 
     taskInput.focus();
-
 }
 
 
@@ -120,7 +115,6 @@ addTaskBtn.addEventListener(
             taskInput.focus();
 
             return;
-
         }
 
 
@@ -166,9 +160,7 @@ document.addEventListener(
                 "delete-btn"
             )
         ) {
-
             return;
-
         }
 
 
@@ -190,7 +182,7 @@ document.addEventListener(
 
 
 /* =========================
-   DELETE + UNDO
+   DELETE TASK
 ========================= */
 
 function deleteTask(taskId) {
@@ -240,7 +232,6 @@ function showUndoToast(
 
     let undoUsed = false;
 
-
     undoToast.hidden = false;
 
 
@@ -264,7 +255,6 @@ function showUndoToast(
 
         undoUsed = true;
 
-
         clearTimeout(timeoutId);
 
 
@@ -279,13 +269,13 @@ function showUndoToast(
 
         updateUI();
 
-
         undoToast.hidden = true;
 
     }
 
 
-    undoBtn.onclick = undoDelete;
+    undoBtn.onclick =
+        undoDelete;
 
 }
 
@@ -374,7 +364,7 @@ function getVisibleTasks() {
         [...tasks];
 
 
-    /* CATEGORY FILTER */
+    /* CATEGORY */
 
     if (
         activeCategory !== "All"
@@ -390,7 +380,7 @@ function getVisibleTasks() {
     }
 
 
-    /* LIVE SEARCH */
+    /* SEARCH */
 
     if (
         searchText !== ""
@@ -408,12 +398,11 @@ function getVisibleTasks() {
 
 
     /*
-       IMPORTANT:
+       A-Z sorting only.
 
-       Newest does NOT sort again.
-
-       This allows the manual drag order
-       to remain after dragging.
+       Newest keeps the actual
+       array order so drag order
+       is preserved.
     */
 
     if (
@@ -498,60 +487,6 @@ function setupDragAndDrop() {
             );
 
 
-            /* DRAG OVER */
-
-            item.addEventListener(
-                "dragover",
-                event => {
-
-                    event.preventDefault();
-
-                    event.dataTransfer.dropEffect =
-                        "move";
-
-                }
-            );
-
-
-            /* DROP */
-
-            item.addEventListener(
-                "drop",
-                event => {
-
-                    event.preventDefault();
-
-
-                    const targetTaskId =
-                        item.dataset.id;
-
-
-                    const draggedId =
-                        draggedTaskId ||
-                        event.dataTransfer.getData(
-                            "text/plain"
-                        );
-
-
-                    if (
-                        !draggedId ||
-                        draggedId === targetTaskId
-                    ) {
-
-                        return;
-
-                    }
-
-
-                    reorderTasks(
-                        draggedId,
-                        targetTaskId
-                    );
-
-                }
-            );
-
-
             /* DRAG END */
 
             item.addEventListener(
@@ -570,80 +505,216 @@ function setupDragAndDrop() {
         }
     );
 
+
+    /*
+       IMPORTANT:
+
+       Dragover is handled by the
+       whole task list instead of
+       individual cards.
+
+       This makes both:
+
+       TOP → BOTTOM
+       BOTTOM → TOP
+
+       work correctly.
+    */
+
+    taskList.addEventListener(
+        "dragover",
+        handleDragOver
+    );
+
+
+    taskList.addEventListener(
+        "drop",
+        handleDrop
+    );
+
 }
 
 
 /* =========================
-   REORDER TASKS
+   DRAG OVER
 ========================= */
 
-function reorderTasks(
-    draggedId,
-    targetId
-) {
+function handleDragOver(event) {
 
-    /*
-       Find the actual positions
-       inside the original tasks array.
-    */
+    event.preventDefault();
 
-    const draggedIndex =
-        tasks.findIndex(
-            task =>
-                task.id === draggedId
+
+    const draggingItem =
+        document.querySelector(
+            ".task-item.dragging"
         );
 
 
-    const targetIndex =
-        tasks.findIndex(
-            task =>
-                task.id === targetId
-        );
-
-
-    if (
-        draggedIndex === -1 ||
-        targetIndex === -1
-    ) {
-
+    if (!draggingItem) {
         return;
+    }
+
+
+    const taskItems =
+        [
+            ...taskList.querySelectorAll(
+                ".task-item:not(.dragging)"
+            )
+        ];
+
+
+    let closestItem = null;
+
+    let closestOffset =
+        Number.NEGATIVE_INFINITY;
+
+
+    for (const item of taskItems) {
+
+        const box =
+            item.getBoundingClientRect();
+
+
+        const offset =
+            event.clientY -
+            box.top -
+            (box.height / 2);
+
+
+        if (
+            offset < 0 &&
+            offset > closestOffset
+        ) {
+
+            closestOffset = offset;
+
+            closestItem = item;
+
+        }
 
     }
 
 
+    if (closestItem) {
+
+        taskList.insertBefore(
+            draggingItem,
+            closestItem
+        );
+
+    } else {
+
+        taskList.appendChild(
+            draggingItem
+        );
+
+    }
+
+}
+
+
+/* =========================
+   DROP
+========================= */
+
+function handleDrop(event) {
+
+    event.preventDefault();
+
+
+    const draggedItem =
+        document.querySelector(
+            ".task-item.dragging"
+        );
+
+
+    if (!draggedItem) {
+        return;
+    }
+
+
     /*
-       Remove dragged task.
+       Read the final visual order
+       from the DOM.
     */
 
-    const [draggedTask] =
-        tasks.splice(
-            draggedIndex,
-            1
+    const orderedIds =
+        [
+            ...taskList.querySelectorAll(
+                ".task-item"
+            )
+        ].map(
+            item => item.dataset.id
         );
 
 
     /*
-       Find target again because
-       array position changed.
+       Rebuild the original tasks
+       array using the new order.
     */
 
-    const newTargetIndex =
-        tasks.findIndex(
-            task =>
-                task.id === targetId
+    const taskMap =
+        new Map(
+            tasks.map(
+                task => [
+                    task.id,
+                    task
+                ]
+            )
         );
 
 
-    /*
-       Put dragged task BEFORE
-       the target task.
-    */
+    const reorderedTasks = [];
 
-    tasks.splice(
-        newTargetIndex,
-        0,
-        draggedTask
+
+    orderedIds.forEach(
+        id => {
+
+            const task =
+                taskMap.get(id);
+
+
+            if (task) {
+
+                reorderedTasks.push(
+                    task
+                );
+
+            }
+
+        }
     );
+
+
+    /*
+       Add any tasks that are not
+       currently visible.
+
+       This is important when
+       search/filter is active.
+    */
+
+    tasks.forEach(
+        task => {
+
+            if (
+                !orderedIds.includes(
+                    task.id
+                )
+            ) {
+
+                reorderedTasks.push(
+                    task
+                );
+
+            }
+
+        }
+    );
+
+
+    tasks =
+        reorderedTasks;
 
 
     /*
@@ -653,8 +724,16 @@ function reorderTasks(
     saveTasks(tasks);
 
 
+    draggedItem.classList.remove(
+        "dragging"
+    );
+
+
+    draggedTaskId = null;
+
+
     /*
-       Render the new order.
+       Render again.
     */
 
     updateUI();
