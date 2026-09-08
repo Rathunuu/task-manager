@@ -181,11 +181,9 @@ document.addEventListener(
         }
 
 
-        const taskId =
-            taskItem.dataset.id;
-
-
-        deleteTask(taskId);
+        deleteTask(
+            taskItem.dataset.id
+        );
 
     }
 );
@@ -376,9 +374,7 @@ function getVisibleTasks() {
         [...tasks];
 
 
-    /* =====================
-       CATEGORY FILTER
-    ===================== */
+    /* CATEGORY FILTER */
 
     if (
         activeCategory !== "All"
@@ -394,9 +390,7 @@ function getVisibleTasks() {
     }
 
 
-    /* =====================
-       SEARCH FILTER
-    ===================== */
+    /* LIVE SEARCH */
 
     if (
         searchText !== ""
@@ -413,18 +407,13 @@ function getVisibleTasks() {
     }
 
 
-    /* =====================
-       SORT
-    ===================== */
-
     /*
-       Newest:
-       Keep the current task-array
-       order so manual drag order
-       is preserved.
+       IMPORTANT:
 
-       A-Z:
-       Sort alphabetically.
+       Newest does NOT sort again.
+
+       This allows the manual drag order
+       to remain after dragging.
     */
 
     if (
@@ -481,10 +470,7 @@ function setupDragAndDrop() {
     taskItems.forEach(
         item => {
 
-
-            /* =================
-               DRAG START
-            ================= */
+            /* DRAG START */
 
             item.addEventListener(
                 "dragstart",
@@ -512,35 +498,13 @@ function setupDragAndDrop() {
             );
 
 
-            /* =================
-               DRAG END
-            ================= */
-
-            item.addEventListener(
-                "dragend",
-                () => {
-
-                    item.classList.remove(
-                        "dragging"
-                    );
-
-
-                    draggedTaskId = null;
-
-                }
-            );
-
-
-            /* =================
-               DRAG OVER
-            ================= */
+            /* DRAG OVER */
 
             item.addEventListener(
                 "dragover",
                 event => {
 
                     event.preventDefault();
-
 
                     event.dataTransfer.dropEffect =
                         "move";
@@ -549,9 +513,7 @@ function setupDragAndDrop() {
             );
 
 
-            /* =================
-               DROP
-            ================= */
+            /* DROP */
 
             item.addEventListener(
                 "drop",
@@ -589,6 +551,22 @@ function setupDragAndDrop() {
                 }
             );
 
+
+            /* DRAG END */
+
+            item.addEventListener(
+                "dragend",
+                () => {
+
+                    item.classList.remove(
+                        "dragging"
+                    );
+
+                    draggedTaskId = null;
+
+                }
+            );
+
         }
     );
 
@@ -603,6 +581,11 @@ function reorderTasks(
     draggedId,
     targetId
 ) {
+
+    /*
+       Find the actual positions
+       inside the original tasks array.
+    */
 
     const draggedIndex =
         tasks.findIndex(
@@ -629,8 +612,7 @@ function reorderTasks(
 
 
     /*
-       Remove dragged task
-       from its current position.
+       Remove dragged task.
     */
 
     const [draggedTask] =
@@ -641,8 +623,8 @@ function reorderTasks(
 
 
     /*
-       Find target position again
-       after removing the dragged task.
+       Find target again because
+       array position changed.
     */
 
     const newTargetIndex =
@@ -653,8 +635,8 @@ function reorderTasks(
 
 
     /*
-       Insert dragged task
-       before the target task.
+       Put dragged task BEFORE
+       the target task.
     */
 
     tasks.splice(
@@ -672,7 +654,7 @@ function reorderTasks(
 
 
     /*
-       Re-render the UI.
+       Render the new order.
     */
 
     updateUI();
@@ -858,9 +840,7 @@ document.addEventListener(
             activeElement.tagName === "SELECT";
 
 
-        /* =================
-           N → NEW TASK
-        ================= */
+        /* N → NEW TASK */
 
         if (
             event.key.toLowerCase() === "n" &&
@@ -874,9 +854,7 @@ document.addEventListener(
         }
 
 
-        /* =================
-           ESCAPE → CLEAR SEARCH
-        ================= */
+        /* ESCAPE → CLEAR SEARCH */
 
         if (
             event.key === "Escape"
