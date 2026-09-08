@@ -45,9 +45,6 @@ const filterButtons =
         "#categoryFilters button"
     );
 
-const taskList =
-    document.getElementById("taskList");
-
 const exportBtn =
     document.getElementById("exportBtn");
 
@@ -137,12 +134,12 @@ addTaskBtn.addEventListener(
 
 
 /* =========================
-   ENTER KEY FOR ADD TASK
+   ENTER KEY
 ========================= */
 
 taskInput.addEventListener(
     "keydown",
-    (event) => {
+    event => {
 
         if (event.key === "Enter") {
 
@@ -162,7 +159,7 @@ taskInput.addEventListener(
 
 document.addEventListener(
     "click",
-    (event) => {
+    event => {
 
         if (
             !event.target.classList.contains(
@@ -175,11 +172,17 @@ document.addEventListener(
         }
 
 
-        const li =
+        const taskItem =
             event.target.closest(".task-item");
 
+
+        if (!taskItem) {
+            return;
+        }
+
+
         const taskId =
-            li.dataset.id;
+            taskItem.dataset.id;
 
 
         deleteTask(taskId);
@@ -201,9 +204,7 @@ function deleteTask(taskId) {
 
 
     if (originalIndex === -1) {
-
         return;
-
     }
 
 
@@ -259,9 +260,7 @@ function showUndoToast(
     function undoDelete() {
 
         if (undoUsed) {
-
             return;
-
         }
 
 
@@ -368,7 +367,7 @@ sortSelect.addEventListener(
 
 
 /* =========================
-   FILTER + SEARCH + SORT
+   GET VISIBLE TASKS
 ========================= */
 
 function getVisibleTasks() {
@@ -377,7 +376,9 @@ function getVisibleTasks() {
         [...tasks];
 
 
-    /* CATEGORY */
+    /* =====================
+       CATEGORY FILTER
+    ===================== */
 
     if (
         activeCategory !== "All"
@@ -393,7 +394,9 @@ function getVisibleTasks() {
     }
 
 
-    /* SEARCH */
+    /* =====================
+       SEARCH FILTER
+    ===================== */
 
     if (
         searchText !== ""
@@ -410,7 +413,19 @@ function getVisibleTasks() {
     }
 
 
-    /* SORT */
+    /* =====================
+       SORT
+    ===================== */
+
+    /*
+       Newest:
+       Keep the current task-array
+       order so manual drag order
+       is preserved.
+
+       A-Z:
+       Sort alphabetically.
+    */
 
     if (
         sortSelect.value === "az"
@@ -421,14 +436,6 @@ function getVisibleTasks() {
                 a.text.localeCompare(
                     b.text
                 )
-        );
-
-    } else {
-
-        visibleTasks.sort(
-            (a, b) =>
-                b.createdAt -
-                a.createdAt
         );
 
     }
@@ -475,7 +482,9 @@ function setupDragAndDrop() {
         item => {
 
 
-            /* DRAG START */
+            /* =================
+               DRAG START
+            ================= */
 
             item.addEventListener(
                 "dragstart",
@@ -490,14 +499,9 @@ function setupDragAndDrop() {
                     );
 
 
-                    /*
-                       This makes the browser
-                       understand that this is
-                       a real drag operation.
-                    */
-
                     event.dataTransfer.effectAllowed =
                         "move";
+
 
                     event.dataTransfer.setData(
                         "text/plain",
@@ -508,7 +512,9 @@ function setupDragAndDrop() {
             );
 
 
-            /* DRAG END */
+            /* =================
+               DRAG END
+            ================= */
 
             item.addEventListener(
                 "dragend",
@@ -518,19 +524,23 @@ function setupDragAndDrop() {
                         "dragging"
                     );
 
+
                     draggedTaskId = null;
 
                 }
             );
 
 
-            /* DRAG OVER */
+            /* =================
+               DRAG OVER
+            ================= */
 
             item.addEventListener(
                 "dragover",
                 event => {
 
                     event.preventDefault();
+
 
                     event.dataTransfer.dropEffect =
                         "move";
@@ -539,7 +549,9 @@ function setupDragAndDrop() {
             );
 
 
-            /* DROP */
+            /* =================
+               DROP
+            ================= */
 
             item.addEventListener(
                 "drop",
@@ -618,7 +630,7 @@ function reorderTasks(
 
     /*
        Remove dragged task
-       from its old position.
+       from its current position.
     */
 
     const [draggedTask] =
@@ -629,8 +641,8 @@ function reorderTasks(
 
 
     /*
-       Find target again because
-       the array changed after splice.
+       Find target position again
+       after removing the dragged task.
     */
 
     const newTargetIndex =
@@ -641,8 +653,8 @@ function reorderTasks(
 
 
     /*
-       Put dragged task before
-       the target task.
+       Insert dragged task
+       before the target task.
     */
 
     tasks.splice(
@@ -652,7 +664,16 @@ function reorderTasks(
     );
 
 
+    /*
+       Save the new order.
+    */
+
     saveTasks(tasks);
+
+
+    /*
+       Re-render the UI.
+    */
 
     updateUI();
 
@@ -724,9 +745,7 @@ importInput.addEventListener(
 
 
         if (!file) {
-
             return;
-
         }
 
 
@@ -839,7 +858,9 @@ document.addEventListener(
             activeElement.tagName === "SELECT";
 
 
-        /* N → NEW TASK */
+        /* =================
+           N → NEW TASK
+        ================= */
 
         if (
             event.key.toLowerCase() === "n" &&
@@ -853,7 +874,9 @@ document.addEventListener(
         }
 
 
-        /* ESCAPE → CLEAR SEARCH */
+        /* =================
+           ESCAPE → CLEAR SEARCH
+        ================= */
 
         if (
             event.key === "Escape"
