@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Task Manager</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div class="app-container">
+
+        <!-- HEADER -->
+        <header class="app-header">
+            <div>
+                <span class="eyebrow">PRODUCTIVITY</span>
+                <h1>Task Manager</h1>
+                <p>Organize your work. Stay focused.</p>
+            </div>
+
+            <div class="task-count">
+                <span id="taskCount">0</span>
+                <small>Tasks</small>
+            </div>
+        </header>
+
+
+        <!-- ADD TASK -->
+        <section class="add-task-card">
+
+            <div class="input-group">
+                <label for="taskInput">New task</label>
+
+                <input
+                    type="text"
+                    id="taskInput"
+                    placeholder="What needs to be done?"
+                    autocomplete="off"
+                >
+            </div>
+
+            <div class="input-group category-group">
+                <label for="categorySelect">Category</label>
+
+                <select id="categorySelect">
+                    <option value="Work">Work</option>
+                    <option value="Personal">Personal</option>
+                    <option value="Urgent">Urgent</option>
+                </select>
+            </div>
+
+            <button id="addTaskBtn" class="primary-btn">
+                <span>+</span>
+                Add Task
+            </button>
+
+        </section>
+
+
+        <!-- SEARCH + FILTERS -->
+        <section class="controls-card">
+
+            <div class="search-box">
+                <span class="search-icon">⌕</span>
+
+                <input
+                    type="text"
+                    id="searchInput"
+                    placeholder="Search tasks..."
+                    autocomplete="off"
+                >
+            </div>
+
+            <div class="filter-row" id="categoryFilters">
+
+                <button class="filter-btn active" data-category="All">
+                    All
+                </button>
+
+                <button class="filter-btn" data-category="Work">
+                    Work
+                </button>
+
+                <button class="filter-btn" data-category="Personal">
+                    Personal
+                </button>
+
+                <button class="filter-btn" data-category="Urgent">
+                    Urgent
+                </button>
+
+            </div>
+
+            <div class="sort-box">
+
+                <label for="sortSelect">Sort by</label>
+
+                <select id="sortSelect">
+                    <option value="newest">Newest</option>
+                    <option value="az">A → Z</option>
+                </select>
+
+            </div>
+
+        </section>
+
+
+        <!-- TASK LIST -->
+        <section class="task-section">
+
+            <div class="section-heading">
+                <div>
+                    <h2>Your Tasks</h2>
+                    <p>Drag tasks to change their order</p>
+                </div>
+            </div>
+
+            <ul id="taskList"></ul>
+
+            <div id="emptyState" class="empty-state">
+
+                <div class="empty-icon">✓</div>
+
+                <h3>No tasks found</h3>
+
+                <p>
+                    Add a new task or change your search/filter.
+                </p>
+
+            </div>
+
+        </section>
+
+
+        <!-- IMPORT / EXPORT -->
+        <section class="data-card">
+
+            <div>
+                <h3>Data Management</h3>
+                <p>Backup or restore your task list.</p>
+            </div>
+
+            <div class="data-actions">
+
+                <button id="exportBtn" class="secondary-btn">
+                    Export JSON
+                </button>
+
+                <label for="importInput" class="secondary-btn">
+                    Import JSON
+                </label>
+
+                <input
+                    type="file"
+                    id="importInput"
+                    accept=".json,application/json"
+                    hidden
+                >
+
+            </div>
+
+        </section>
+
+    </div>
+
+
+    <!-- UNDO TOAST -->
+    <div id="undoToast" class="undo-toast" hidden>
+
+        <span>Task deleted</span>
+
+        <button id="undoBtn">
+            Undo
+        </button>
+
+    </div>
+
+
+    <!-- JAVASCRIPT MODULE -->
+    <script type="module" src="app.js"></script>
+
+</body>
+</html>
