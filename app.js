@@ -201,7 +201,9 @@ function deleteTask(taskId) {
 
 
     if (originalIndex === -1) {
+
         return;
+
     }
 
 
@@ -244,17 +246,22 @@ function showUndoToast(
 
 
     const timeoutId =
-        setTimeout(() => {
+        setTimeout(
+            () => {
 
-            undoToast.hidden = true;
+                undoToast.hidden = true;
 
-        }, 5000);
+            },
+            5000
+        );
 
 
     function undoDelete() {
 
         if (undoUsed) {
+
             return;
+
         }
 
 
@@ -366,12 +373,15 @@ sortSelect.addEventListener(
 
 function getVisibleTasks() {
 
-    let visibleTasks = [...tasks];
+    let visibleTasks =
+        [...tasks];
 
 
     /* CATEGORY */
 
-    if (activeCategory !== "All") {
+    if (
+        activeCategory !== "All"
+    ) {
 
         visibleTasks =
             visibleTasks.filter(
@@ -385,7 +395,9 @@ function getVisibleTasks() {
 
     /* SEARCH */
 
-    if (searchText !== "") {
+    if (
+        searchText !== ""
+    ) {
 
         visibleTasks =
             visibleTasks.filter(
@@ -400,18 +412,23 @@ function getVisibleTasks() {
 
     /* SORT */
 
-    if (sortSelect.value === "az") {
+    if (
+        sortSelect.value === "az"
+    ) {
 
         visibleTasks.sort(
             (a, b) =>
-                a.text.localeCompare(b.text)
+                a.text.localeCompare(
+                    b.text
+                )
         );
 
     } else {
 
         visibleTasks.sort(
             (a, b) =>
-                b.createdAt - a.createdAt
+                b.createdAt -
+                a.createdAt
         );
 
     }
@@ -443,7 +460,7 @@ function updateUI() {
 
 
 /* =========================
-   DRAG START
+   DRAG & DROP
 ========================= */
 
 function setupDragAndDrop() {
@@ -457,9 +474,12 @@ function setupDragAndDrop() {
     taskItems.forEach(
         item => {
 
+
+            /* DRAG START */
+
             item.addEventListener(
                 "dragstart",
-                () => {
+                event => {
 
                     draggedTaskId =
                         item.dataset.id;
@@ -469,9 +489,26 @@ function setupDragAndDrop() {
                         "dragging"
                     );
 
+
+                    /*
+                       This makes the browser
+                       understand that this is
+                       a real drag operation.
+                    */
+
+                    event.dataTransfer.effectAllowed =
+                        "move";
+
+                    event.dataTransfer.setData(
+                        "text/plain",
+                        draggedTaskId
+                    );
+
                 }
             );
 
+
+            /* DRAG END */
 
             item.addEventListener(
                 "dragend",
@@ -487,15 +524,22 @@ function setupDragAndDrop() {
             );
 
 
+            /* DRAG OVER */
+
             item.addEventListener(
                 "dragover",
                 event => {
 
                     event.preventDefault();
 
+                    event.dataTransfer.dropEffect =
+                        "move";
+
                 }
             );
 
+
+            /* DROP */
 
             item.addEventListener(
                 "drop",
@@ -508,9 +552,16 @@ function setupDragAndDrop() {
                         item.dataset.id;
 
 
+                    const draggedId =
+                        draggedTaskId ||
+                        event.dataTransfer.getData(
+                            "text/plain"
+                        );
+
+
                     if (
-                        draggedTaskId ===
-                        targetTaskId
+                        !draggedId ||
+                        draggedId === targetTaskId
                     ) {
 
                         return;
@@ -519,7 +570,7 @@ function setupDragAndDrop() {
 
 
                     reorderTasks(
-                        draggedTaskId,
+                        draggedId,
                         targetTaskId
                     );
 
@@ -543,12 +594,15 @@ function reorderTasks(
 
     const draggedIndex =
         tasks.findIndex(
-            task => task.id === draggedId
+            task =>
+                task.id === draggedId
         );
+
 
     const targetIndex =
         tasks.findIndex(
-            task => task.id === targetId
+            task =>
+                task.id === targetId
         );
 
 
@@ -562,6 +616,11 @@ function reorderTasks(
     }
 
 
+    /*
+       Remove dragged task
+       from its old position.
+    */
+
     const [draggedTask] =
         tasks.splice(
             draggedIndex,
@@ -569,15 +628,31 @@ function reorderTasks(
         );
 
 
+    /*
+       Find target again because
+       the array changed after splice.
+    */
+
+    const newTargetIndex =
+        tasks.findIndex(
+            task =>
+                task.id === targetId
+        );
+
+
+    /*
+       Put dragged task before
+       the target task.
+    */
+
     tasks.splice(
-        targetIndex,
+        newTargetIndex,
         0,
         draggedTask
     );
 
 
     saveTasks(tasks);
-
 
     updateUI();
 
@@ -649,7 +724,9 @@ importInput.addEventListener(
 
 
         if (!file) {
+
             return;
+
         }
 
 
@@ -685,8 +762,10 @@ importInput.addEventListener(
                         importedTasks.filter(
                             task =>
                                 task &&
-                                typeof task.text === "string" &&
-                                typeof task.category === "string"
+                                typeof task.text ===
+                                    "string" &&
+                                typeof task.category ===
+                                    "string"
                         );
 
 
@@ -705,7 +784,9 @@ importInput.addEventListener(
                                     task.category,
 
                                 done:
-                                    Boolean(task.done),
+                                    Boolean(
+                                        task.done
+                                    ),
 
                                 createdAt:
                                     task.createdAt ||
@@ -774,7 +855,9 @@ document.addEventListener(
 
         /* ESCAPE → CLEAR SEARCH */
 
-        if (event.key === "Escape") {
+        if (
+            event.key === "Escape"
+        ) {
 
             searchInput.value = "";
 
