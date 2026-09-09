@@ -61,12 +61,18 @@ tasks = tasks.map(task => {
         ...task
     };
 
+
     if (!updatedTask.projectId) {
-        updatedTask.projectId = activeProjectId;
+
+        updatedTask.projectId =
+            activeProjectId;
+
         tasksChanged = true;
     }
 
+
     if (!updatedTask.status) {
+
         updatedTask.status =
             updatedTask.done
                 ? "Done"
@@ -75,28 +81,61 @@ tasks = tasks.map(task => {
         tasksChanged = true;
     }
 
+
     if (!updatedTask.description) {
         updatedTask.description = "";
     }
+
 
     if (!updatedTask.dueDate) {
         updatedTask.dueDate = "";
     }
 
+
     if (!updatedTask.priority) {
         updatedTask.priority = "Normal";
     }
+
 
     if (!updatedTask.notes) {
         updatedTask.notes = "";
     }
 
+
     if (!Array.isArray(updatedTask.subtasks)) {
+
         updatedTask.subtasks = [];
     }
 
+
+    /*
+       Make sure every subtask uses
+       the same "done" property.
+    */
+
+    updatedTask.subtasks =
+        updatedTask.subtasks.map(
+            subtask => ({
+
+                id:
+                    subtask.id ||
+                    crypto.randomUUID(),
+
+                text:
+                    subtask.text || "",
+
+                done:
+                    Boolean(
+                        subtask.done ??
+                        subtask.completed
+                    )
+            })
+        );
+
+
     return updatedTask;
 });
+
 
 if (tasksChanged) {
     saveTasks(tasks);
@@ -151,22 +190,34 @@ const undoBtn =
 ========================= */
 
 const projectSwitcher =
-    document.getElementById("projectSwitcher");
+    document.getElementById(
+        "projectSwitcher"
+    );
 
 const newProjectBtn =
-    document.getElementById("newProjectBtn");
+    document.getElementById(
+        "newProjectBtn"
+    );
 
 const newProjectDialog =
-    document.getElementById("newProjectDialog");
+    document.getElementById(
+        "newProjectDialog"
+    );
 
 const projectNameInput =
-    document.getElementById("projectNameInput");
+    document.getElementById(
+        "projectNameInput"
+    );
 
 const createProjectBtn =
-    document.getElementById("createProjectBtn");
+    document.getElementById(
+        "createProjectBtn"
+    );
 
 const cancelProjectBtn =
-    document.getElementById("cancelProjectBtn");
+    document.getElementById(
+        "cancelProjectBtn"
+    );
 
 const closeProjectDialogBtn =
     document.getElementById(
@@ -179,16 +230,24 @@ const closeProjectDialogBtn =
 ========================= */
 
 const listViewBtn =
-    document.getElementById("listViewBtn");
+    document.getElementById(
+        "listViewBtn"
+    );
 
 const boardViewBtn =
-    document.getElementById("boardViewBtn");
+    document.getElementById(
+        "boardViewBtn"
+    );
 
 const listView =
-    document.getElementById("listView");
+    document.getElementById(
+        "listView"
+    );
 
 const boardView =
-    document.getElementById("boardView");
+    document.getElementById(
+        "boardView"
+    );
 
 
 /* =========================
@@ -215,12 +274,12 @@ const detailDescription =
         "detailDescription"
     );
 
-const detailStatus =
+let detailStatus =
     document.getElementById(
         "detailStatus"
     );
 
-const detailPriority =
+let detailPriority =
     document.getElementById(
         "detailPriority"
     );
@@ -230,7 +289,7 @@ const detailDueDate =
         "detailDueDate"
     );
 
-const detailCategory =
+let detailCategory =
     document.getElementById(
         "detailCategory"
     );
@@ -262,6 +321,123 @@ const subtaskList =
 
 
 /* =========================
+   MAKE DETAIL CONTROLS
+   CLICKABLE
+========================= */
+
+/*
+   If detailStatus / priority / category
+   are normal text elements instead of
+   <select>, convert them into dropdowns.
+*/
+
+function ensureSelect(
+    element,
+    options,
+    defaultValue
+) {
+
+    if (!element) {
+        return null;
+    }
+
+
+    if (
+        element.tagName.toLowerCase() ===
+        "select"
+    ) {
+
+        return element;
+    }
+
+
+    const select =
+        document.createElement("select");
+
+
+    select.id =
+        element.id;
+
+
+    select.className =
+        element.className;
+
+
+    options.forEach(optionValue => {
+
+        const option =
+            document.createElement(
+                "option"
+            );
+
+        option.value =
+            optionValue;
+
+        option.textContent =
+            optionValue;
+
+        select.appendChild(
+            option
+        );
+
+    });
+
+
+    select.value =
+        defaultValue;
+
+
+    element.replaceWith(select);
+
+
+    return select;
+}
+
+
+/* STATUS */
+
+detailStatus =
+    ensureSelect(
+        detailStatus,
+        [
+            "To Do",
+            "In Progress",
+            "In Review",
+            "Done"
+        ],
+        "To Do"
+    );
+
+
+/* PRIORITY */
+
+detailPriority =
+    ensureSelect(
+        detailPriority,
+        [
+            "Low",
+            "Normal",
+            "High"
+        ],
+        "Normal"
+    );
+
+
+/* CATEGORY */
+
+detailCategory =
+    ensureSelect(
+        detailCategory,
+        [
+            "Work",
+            "Personal",
+            "Urgent"
+        ],
+        "Work"
+    );
+
+
+/* =========================
    INITIAL UI
 ========================= */
 
@@ -272,34 +448,51 @@ updateUI();
    ADD TASK
 ========================= */
 
-function addTask(text, category, status) {
+function addTask(
+    text,
+    category,
+    status
+) {
 
     const newTask = {
 
-        id: crypto.randomUUID(),
+        id:
+            crypto.randomUUID(),
 
-        projectId: activeProjectId,
+        projectId:
+            activeProjectId,
 
-        text: text,
+        text:
+            text,
 
-        category: category,
+        category:
+            category,
 
-        status: status,
+        status:
+            status,
 
-        done: status === "Done",
+        done:
+            status === "Done",
 
-        description: "",
+        description:
+            "",
 
-        dueDate: "",
+        dueDate:
+            "",
 
-        priority: "Normal",
+        priority:
+            "Normal",
 
-        notes: "",
+        notes:
+            "",
 
-        subtasks: [],
+        subtasks:
+            [],
 
-        createdAt: Date.now()
+        createdAt:
+            Date.now()
     };
+
 
     tasks.push(newTask);
 
@@ -330,12 +523,14 @@ addTaskBtn.addEventListener(
         const status =
             statusSelect.value;
 
+
         if (text === "") {
 
             taskInput.focus();
 
             return;
         }
+
 
         addTask(
             text,
@@ -347,7 +542,7 @@ addTaskBtn.addEventListener(
 
 
 /* =========================
-   ENTER KEY
+   ENTER KEY - ADD TASK
 ========================= */
 
 taskInput.addEventListener(
@@ -377,29 +572,46 @@ projectSwitcher.addEventListener(
                 ".project-item"
             );
 
+
         if (!projectButton) {
             return;
         }
 
+
         activeProjectId =
             projectButton.dataset.projectId;
 
-        activeCategory = "All";
 
-        filterButtons.forEach(button => {
-            button.classList.remove(
-                "active"
-            );
+        activeCategory =
+            "All";
 
-            if (
-                button.dataset.category ===
-                "All"
-            ) {
-                button.classList.add(
+
+        filterButtons.forEach(
+            button => {
+
+                button.classList.remove(
                     "active"
                 );
+
+
+                if (
+                    button.dataset.category ===
+                    "All"
+                ) {
+
+                    button.classList.add(
+                        "active"
+                    );
+                }
+
             }
-        });
+        );
+
+
+        searchInput.value = "";
+
+        searchText = "";
+
 
         updateUI();
     }
@@ -434,6 +646,7 @@ createProjectBtn.addEventListener(
         const name =
             projectNameInput.value.trim();
 
+
         if (name === "") {
 
             projectNameInput.focus();
@@ -441,19 +654,25 @@ createProjectBtn.addEventListener(
             return;
         }
 
+
         const newProject = {
 
-            id: crypto.randomUUID(),
+            id:
+                crypto.randomUUID(),
 
-            name: name
+            name:
+                name
         };
+
 
         projects.push(newProject);
 
         saveProjects(projects);
 
+
         activeProjectId =
             newProject.id;
+
 
         newProjectDialog.close();
 
@@ -520,6 +739,7 @@ filterButtons.forEach(
                 activeCategory =
                     button.dataset.category;
 
+
                 filterButtons.forEach(
                     btn => {
 
@@ -529,9 +749,11 @@ filterButtons.forEach(
                     }
                 );
 
+
                 button.classList.add(
                     "active"
                 );
+
 
                 updateUI();
             }
@@ -552,6 +774,7 @@ searchInput.addEventListener(
             searchInput.value
                 .toLowerCase()
                 .trim();
+
 
         updateUI();
     }
@@ -608,13 +831,16 @@ function updateViewButtons() {
         currentView === "list"
     );
 
+
     boardViewBtn.classList.toggle(
         "active",
         currentView === "board"
     );
 
+
     listView.hidden =
         currentView !== "list";
+
 
     boardView.hidden =
         currentView !== "board";
@@ -645,7 +871,7 @@ function getVisibleTasks() {
         getProjectTasks();
 
 
-    /* CATEGORY */
+    /* CATEGORY FILTER */
 
     if (
         activeCategory !== "All"
@@ -667,9 +893,11 @@ function getVisibleTasks() {
         visibleTasks =
             visibleTasks.filter(
                 task =>
-                    task.text
-                        .toLowerCase()
-                        .includes(searchText)
+                    String(
+                        task.text || ""
+                    )
+                    .toLowerCase()
+                    .includes(searchText)
             );
     }
 
@@ -682,11 +910,21 @@ function getVisibleTasks() {
 
         visibleTasks.sort(
             (a, b) =>
-                a.text.localeCompare(
-                    b.text
-                )
+                String(a.text || "")
+                    .localeCompare(
+                        String(b.text || "")
+                    )
+        );
+
+    } else {
+
+        visibleTasks.sort(
+            (a, b) =>
+                (b.createdAt || 0) -
+                (a.createdAt || 0)
         );
     }
+
 
     return visibleTasks;
 }
@@ -701,8 +939,10 @@ function updateUI() {
     const visibleTasks =
         getVisibleTasks();
 
+
     const projectTasks =
         getProjectTasks();
+
 
     const activeProject =
         projects.find(
@@ -750,9 +990,11 @@ function updateUI() {
     updateViewButtons();
 
 
-    /* DRAG AND DROP */
+    /* DRAG & DROP */
 
-    if (currentView === "list") {
+    if (
+        currentView === "list"
+    ) {
 
         setupListDragAndDrop();
 
@@ -774,6 +1016,7 @@ function setupListDragAndDrop() {
             ".task-item"
         );
 
+
     taskItems.forEach(
         item => {
 
@@ -785,12 +1028,15 @@ function setupListDragAndDrop() {
                         item.dataset.id ||
                         item.dataset.taskId;
 
+
                     item.classList.add(
                         "dragging"
                     );
 
+
                     event.dataTransfer.effectAllowed =
                         "move";
+
 
                     event.dataTransfer.setData(
                         "text/plain",
@@ -808,6 +1054,7 @@ function setupListDragAndDrop() {
                         "dragging"
                     );
 
+
                     draggedTaskId = null;
                 }
             );
@@ -820,6 +1067,7 @@ function setupListDragAndDrop() {
         handleListDragOver
     );
 
+
     taskList.addEventListener(
         "drop",
         handleListDrop
@@ -831,14 +1079,17 @@ function handleListDragOver(event) {
 
     event.preventDefault();
 
+
     const draggingItem =
         document.querySelector(
             ".task-item.dragging"
         );
 
+
     if (!draggingItem) {
         return;
     }
+
 
     const taskItems = [
         ...taskList.querySelectorAll(
@@ -846,30 +1097,37 @@ function handleListDragOver(event) {
         )
     ];
 
+
     let closestItem = null;
 
     let closestOffset =
         Number.NEGATIVE_INFINITY;
 
 
-    for (const item of taskItems) {
+    for (
+        const item of taskItems
+    ) {
 
         const box =
             item.getBoundingClientRect();
+
 
         const offset =
             event.clientY -
             box.top -
             box.height / 2;
 
+
         if (
             offset < 0 &&
             offset > closestOffset
         ) {
 
-            closestOffset = offset;
+            closestOffset =
+                offset;
 
-            closestItem = item;
+            closestItem =
+                item;
         }
     }
 
@@ -894,6 +1152,7 @@ function handleListDrop(event) {
 
     event.preventDefault();
 
+
     const orderedIds = [
         ...taskList.querySelectorAll(
             ".task-item"
@@ -917,7 +1176,9 @@ function handleListDrop(event) {
         );
 
 
-    const reorderedProjectTasks = [];
+    const reorderedProjectTasks =
+        [];
+
 
     orderedIds.forEach(id => {
 
@@ -926,6 +1187,7 @@ function handleListDrop(event) {
                 item =>
                     item.id === id
             );
+
 
         if (task) {
 
@@ -936,15 +1198,21 @@ function handleListDrop(event) {
     });
 
 
-    projectTasks.forEach(task => {
+    projectTasks.forEach(
+        task => {
 
-        if (!visibleSet.has(task.id)) {
+            if (
+                !visibleSet.has(
+                    task.id
+                )
+            ) {
 
-            reorderedProjectTasks.push(
-                task
-            );
+                reorderedProjectTasks.push(
+                    task
+                );
+            }
         }
-    });
+    );
 
 
     const otherTasks =
@@ -959,6 +1227,7 @@ function handleListDrop(event) {
         ...otherTasks,
         ...reorderedProjectTasks
     ];
+
 
     saveTasks(tasks);
 
@@ -979,6 +1248,7 @@ function setupBoardDragAndDrop() {
             ".kanban-task"
         );
 
+
     const columns =
         document.querySelectorAll(
             ".kanban-tasks"
@@ -996,12 +1266,15 @@ function setupBoardDragAndDrop() {
                         card.dataset.taskId ||
                         card.dataset.id;
 
+
                     card.classList.add(
                         "dragging"
                     );
 
+
                     event.dataTransfer.effectAllowed =
                         "move";
+
 
                     event.dataTransfer.setData(
                         "text/plain",
@@ -1018,6 +1291,7 @@ function setupBoardDragAndDrop() {
                     card.classList.remove(
                         "dragging"
                     );
+
 
                     draggedTaskId = null;
                 }
@@ -1059,15 +1333,18 @@ function setupBoardDragAndDrop() {
 
                     event.preventDefault();
 
+
                     column.classList.remove(
                         "drag-over"
                     );
+
 
                     const taskId =
                         draggedTaskId ||
                         event.dataTransfer.getData(
                             "text/plain"
                         );
+
 
                     if (!taskId) {
                         return;
@@ -1080,6 +1357,7 @@ function setupBoardDragAndDrop() {
                                 item.id ===
                                 taskId
                         );
+
 
                     if (!task) {
                         return;
@@ -1119,8 +1397,10 @@ function setupBoardDragAndDrop() {
                     task.status =
                         newStatus;
 
+
                     task.done =
-                        newStatus === "Done";
+                        newStatus ===
+                        "Done";
 
 
                     saveTasks(tasks);
@@ -1148,6 +1428,7 @@ document.addEventListener(
                 ".task-item, .kanban-task"
             );
 
+
         if (!taskCard) {
             return;
         }
@@ -1166,9 +1447,11 @@ document.addEventListener(
             taskCard.dataset.id ||
             taskCard.dataset.taskId;
 
+
         if (!taskId) {
             return;
         }
+
 
         openTaskDetail(taskId);
     }
@@ -1187,17 +1470,23 @@ function openTaskDetail(taskId) {
                 item.id === taskId
         );
 
+
     if (!task) {
         return;
     }
 
-    activeDetailTaskId = taskId;
+
+    activeDetailTaskId =
+        taskId;
+
 
     renderTaskDetail(task);
+
 
     renderSubtasks(
         task.subtasks || []
     );
+
 
     taskDetailDialog.showModal();
 }
@@ -1219,7 +1508,7 @@ closeDetailBtn.addEventListener(
 
 
 /* =========================
-   SAVE DETAIL FIELDS
+   SAVE DETAIL CHANGES
 ========================= */
 
 function saveDetailChanges() {
@@ -1228,6 +1517,7 @@ function saveDetailChanges() {
         return;
     }
 
+
     const task =
         tasks.find(
             item =>
@@ -1235,58 +1525,137 @@ function saveDetailChanges() {
                 activeDetailTaskId
         );
 
+
     if (!task) {
         return;
     }
 
 
-    task.description =
-        detailDescription.value;
+    /* DESCRIPTION */
 
-    task.status =
-        detailStatus.value;
+    if (detailDescription) {
 
-    task.priority =
-        detailPriority.value;
+        task.description =
+            detailDescription.value ??
+            "";
+    }
 
-    task.dueDate =
-        detailDueDate.value;
 
-    task.category =
-        detailCategory.value;
+    /* STATUS */
 
-    task.notes =
-        taskNotes.value;
+    if (detailStatus) {
 
-    task.done =
-        task.status === "Done";
+        task.status =
+            detailStatus.value;
+
+        task.done =
+            task.status === "Done";
+    }
+
+
+    /* PRIORITY */
+
+    if (detailPriority) {
+
+        task.priority =
+            detailPriority.value;
+    }
+
+
+    /* DUE DATE */
+
+    if (detailDueDate) {
+
+        task.dueDate =
+            detailDueDate.value;
+    }
+
+
+    /* CATEGORY */
+
+    if (detailCategory) {
+
+        task.category =
+            detailCategory.value;
+    }
+
+
+    /* NOTES */
+
+    if (taskNotes) {
+
+        task.notes =
+            taskNotes.value;
+    }
 
 
     saveTasks(tasks);
 
     updateUI();
+
+
+    /*
+       Re-render the open dialog
+       so the selected status stays visible.
+    */
+
+    if (
+        taskDetailDialog.open &&
+        activeDetailTaskId
+    ) {
+
+        renderTaskDetail(task);
+
+        renderSubtasks(
+            task.subtasks || []
+        );
+    }
 }
 
+
+/* =========================
+   DETAIL STATUS CHANGE
+========================= */
 
 detailStatus.addEventListener(
     "change",
     saveDetailChanges
 );
 
+
+/* =========================
+   DETAIL PRIORITY CHANGE
+========================= */
+
 detailPriority.addEventListener(
     "change",
     saveDetailChanges
 );
+
+
+/* =========================
+   DETAIL DUE DATE CHANGE
+========================= */
 
 detailDueDate.addEventListener(
     "change",
     saveDetailChanges
 );
 
+
+/* =========================
+   DETAIL CATEGORY CHANGE
+========================= */
+
 detailCategory.addEventListener(
     "change",
     saveDetailChanges
 );
+
+
+/* =========================
+   DETAIL DESCRIPTION CHANGE
+========================= */
 
 detailDescription.addEventListener(
     "change",
@@ -1306,6 +1675,7 @@ saveNotesBtn.addEventListener(
             return;
         }
 
+
         const task =
             tasks.find(
                 item =>
@@ -1313,16 +1683,36 @@ saveNotesBtn.addEventListener(
                     activeDetailTaskId
             );
 
+
         if (!task) {
             return;
         }
 
+
         task.notes =
             taskNotes.value;
+
 
         saveTasks(tasks);
 
         updateUI();
+
+
+        /*
+           Keep detail dialog open
+           after saving notes.
+        */
+
+        if (
+            taskDetailDialog.open
+        ) {
+
+            renderTaskDetail(task);
+
+            renderSubtasks(
+                task.subtasks || []
+            );
+        }
     }
 );
 
@@ -1357,8 +1747,10 @@ function addSubtask() {
         return;
     }
 
+
     const text =
         subtaskInput.value.trim();
+
 
     if (text === "") {
         return;
@@ -1372,29 +1764,36 @@ function addSubtask() {
                 activeDetailTaskId
         );
 
+
     if (!task) {
         return;
     }
 
 
     if (!Array.isArray(task.subtasks)) {
+
         task.subtasks = [];
     }
 
 
     task.subtasks.push({
 
-        id: crypto.randomUUID(),
+        id:
+            crypto.randomUUID(),
 
-        text: text,
+        text:
+            text,
 
-        done: false
+        done:
+            false
     });
 
 
     saveTasks(tasks);
 
+
     subtaskInput.value = "";
+
 
     renderSubtasks(
         task.subtasks
@@ -1422,6 +1821,7 @@ subtaskList.addEventListener(
                     activeDetailTaskId
             );
 
+
         if (!task) {
             return;
         }
@@ -1432,16 +1832,20 @@ subtaskList.addEventListener(
                 ".subtask-checkbox"
             );
 
+
         const deleteButton =
             event.target.closest(
                 ".subtask-delete"
             );
 
 
+        /* CHECK SUBTASK */
+
         if (checkbox) {
 
             const subtaskId =
                 checkbox.dataset.subtaskId;
+
 
             const subtask =
                 task.subtasks.find(
@@ -1450,26 +1854,33 @@ subtaskList.addEventListener(
                         subtaskId
                 );
 
+
             if (subtask) {
 
                 subtask.done =
                     checkbox.checked;
             }
 
+
             saveTasks(tasks);
+
 
             renderSubtasks(
                 task.subtasks
             );
 
+
             return;
         }
 
+
+        /* DELETE SUBTASK */
 
         if (deleteButton) {
 
             const subtaskId =
                 deleteButton.dataset.subtaskId;
+
 
             task.subtasks =
                 task.subtasks.filter(
@@ -1478,7 +1889,9 @@ subtaskList.addEventListener(
                         subtaskId
                 );
 
+
             saveTasks(tasks);
+
 
             renderSubtasks(
                 task.subtasks
@@ -1510,6 +1923,7 @@ document.addEventListener(
                 ".task-item, .kanban-task"
             );
 
+
         if (!taskCard) {
             return;
         }
@@ -1518,6 +1932,7 @@ document.addEventListener(
         const taskId =
             taskCard.dataset.id ||
             taskCard.dataset.taskId;
+
 
         deleteTask(taskId);
     }
@@ -1535,6 +1950,7 @@ function deleteTask(taskId) {
             task =>
                 task.id === taskId
         );
+
 
     if (originalIndex === -1) {
         return;
@@ -1556,6 +1972,7 @@ function deleteTask(taskId) {
 
     updateUI();
 
+
     showUndoToast(
         removedTask,
         originalIndex
@@ -1573,6 +1990,7 @@ function showUndoToast(
 ) {
 
     let undoUsed = false;
+
 
     undoToast.hidden = false;
 
@@ -1594,15 +2012,21 @@ function showUndoToast(
             return;
         }
 
+
         undoUsed = true;
 
-        clearTimeout(timeoutId);
+
+        clearTimeout(
+            timeoutId
+        );
+
 
         tasks.splice(
             originalIndex,
             0,
             removedTask
         );
+
 
         saveTasks(tasks);
 
@@ -1627,9 +2051,11 @@ exportBtn.addEventListener(
 
         const data = {
 
-            projects: projects,
+            projects:
+                projects,
 
-            tasks: tasks
+            tasks:
+                tasks
         };
 
 
@@ -1662,20 +2088,29 @@ exportBtn.addEventListener(
                 "a"
             );
 
-        link.href = url;
+
+        link.href =
+            url;
+
 
         link.download =
             "tasks.json";
+
 
         document.body.appendChild(
             link
         );
 
+
         link.click();
+
 
         link.remove();
 
-        URL.revokeObjectURL(url);
+
+        URL.revokeObjectURL(
+            url
+        );
     }
 );
 
@@ -1690,6 +2125,7 @@ importInput.addEventListener(
 
         const file =
             event.target.files[0];
+
 
         if (!file) {
             return;
@@ -1729,8 +2165,10 @@ importInput.addEventListener(
                         projects =
                             importedData.projects;
 
+
                         tasks =
                             importedData.tasks;
+
 
                         if (
                             projects.length ===
@@ -1738,8 +2176,10 @@ importInput.addEventListener(
                         ) {
 
                             projects.push({
+
                                 id:
                                     crypto.randomUUID(),
+
                                 name:
                                     "My Project"
                             });
@@ -1748,7 +2188,6 @@ importInput.addEventListener(
 
                         activeProjectId =
                             projects[0].id;
-
                     }
 
 
@@ -1766,11 +2205,14 @@ importInput.addEventListener(
                         ) {
 
                             projects.push({
+
                                 id:
                                     crypto.randomUUID(),
+
                                 name:
                                     "My Project"
                             });
+
 
                             saveProjects(
                                 projects
@@ -1858,7 +2300,24 @@ importInput.addEventListener(
                                         Array.isArray(
                                             task.subtasks
                                         )
-                                            ? task.subtasks
+                                            ? task.subtasks.map(
+                                                subtask => ({
+
+                                                    id:
+                                                        subtask.id ||
+                                                        crypto.randomUUID(),
+
+                                                    text:
+                                                        subtask.text ||
+                                                        "",
+
+                                                    done:
+                                                        Boolean(
+                                                            subtask.done ??
+                                                            subtask.completed
+                                                        )
+                                                })
+                                            )
                                             : [],
 
                                     createdAt:
@@ -1882,6 +2341,7 @@ importInput.addEventListener(
                     console.error(
                         error
                     );
+
 
                     alert(
                         "Invalid JSON file. Please import a valid tasks.json file."
