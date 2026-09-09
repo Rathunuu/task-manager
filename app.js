@@ -1,10 +1,17 @@
 import {
     loadTasks,
-    saveTasks
+    saveTasks,
+    loadProjects,
+    saveProjects
 } from "./storage.js";
 
 import {
-    renderTasks
+    renderTasks,
+    renderProjects,
+    renderBoard,
+    renderTaskDetail,
+    renderSubtasks,
+    renderProgress
 } from "./render.js";
 
 
@@ -13,12 +20,87 @@ import {
 ========================= */
 
 let tasks = loadTasks();
+let projects = loadProjects();
 
+let activeProjectId = null;
 let activeCategory = "All";
-
 let searchText = "";
-
+let currentView = "list";
 let draggedTaskId = null;
+let activeDetailTaskId = null;
+
+
+/* =========================
+   PROJECT MIGRATION
+========================= */
+
+if (projects.length === 0) {
+
+    const defaultProject = {
+        id: crypto.randomUUID(),
+        name: "My Project"
+    };
+
+    projects.push(defaultProject);
+
+    saveProjects(projects);
+}
+
+activeProjectId = projects[0].id;
+
+
+/* =========================
+   MIGRATE OLD TASKS
+========================= */
+
+let tasksChanged = false;
+
+tasks = tasks.map(task => {
+
+    const updatedTask = {
+        ...task
+    };
+
+    if (!updatedTask.projectId) {
+        updatedTask.projectId = activeProjectId;
+        tasksChanged = true;
+    }
+
+    if (!updatedTask.status) {
+        updatedTask.status =
+            updatedTask.done
+                ? "Done"
+                : "To Do";
+
+        tasksChanged = true;
+    }
+
+    if (!updatedTask.description) {
+        updatedTask.description = "";
+    }
+
+    if (!updatedTask.dueDate) {
+        updatedTask.dueDate = "";
+    }
+
+    if (!updatedTask.priority) {
+        updatedTask.priority = "Normal";
+    }
+
+    if (!updatedTask.notes) {
+        updatedTask.notes = "";
+    }
+
+    if (!Array.isArray(updatedTask.subtasks)) {
+        updatedTask.subtasks = [];
+    }
+
+    return updatedTask;
+});
+
+if (tasksChanged) {
+    saveTasks(tasks);
+}
 
 
 /* =========================
@@ -30,6 +112,9 @@ const taskInput =
 
 const categorySelect =
     document.getElementById("categorySelect");
+
+const statusSelect =
+    document.getElementById("statusSelect");
 
 const addTaskBtn =
     document.getElementById("addTaskBtn");
@@ -62,6 +147,121 @@ const undoBtn =
 
 
 /* =========================
+   PROJECT ELEMENTS
+========================= */
+
+const projectSwitcher =
+    document.getElementById("projectSwitcher");
+
+const newProjectBtn =
+    document.getElementById("newProjectBtn");
+
+const newProjectDialog =
+    document.getElementById("newProjectDialog");
+
+const projectNameInput =
+    document.getElementById("projectNameInput");
+
+const createProjectBtn =
+    document.getElementById("createProjectBtn");
+
+const cancelProjectBtn =
+    document.getElementById("cancelProjectBtn");
+
+const closeProjectDialogBtn =
+    document.getElementById(
+        "closeProjectDialogBtn"
+    );
+
+
+/* =========================
+   VIEW ELEMENTS
+========================= */
+
+const listViewBtn =
+    document.getElementById("listViewBtn");
+
+const boardViewBtn =
+    document.getElementById("boardViewBtn");
+
+const listView =
+    document.getElementById("listView");
+
+const boardView =
+    document.getElementById("boardView");
+
+
+/* =========================
+   DETAIL ELEMENTS
+========================= */
+
+const taskDetailDialog =
+    document.getElementById(
+        "taskDetailDialog"
+    );
+
+const detailTaskTitle =
+    document.getElementById(
+        "detailTaskTitle"
+    );
+
+const closeDetailBtn =
+    document.getElementById(
+        "closeDetailBtn"
+    );
+
+const detailDescription =
+    document.getElementById(
+        "detailDescription"
+    );
+
+const detailStatus =
+    document.getElementById(
+        "detailStatus"
+    );
+
+const detailPriority =
+    document.getElementById(
+        "detailPriority"
+    );
+
+const detailDueDate =
+    document.getElementById(
+        "detailDueDate"
+    );
+
+const detailCategory =
+    document.getElementById(
+        "detailCategory"
+    );
+
+const taskNotes =
+    document.getElementById(
+        "taskNotes"
+    );
+
+const saveNotesBtn =
+    document.getElementById(
+        "saveNotesBtn"
+    );
+
+const subtaskInput =
+    document.getElementById(
+        "subtaskInput"
+    );
+
+const addSubtaskBtn =
+    document.getElementById(
+        "addSubtaskBtn"
+    );
+
+const subtaskList =
+    document.getElementById(
+        "subtaskList"
+    );
+
+
+/* =========================
    INITIAL UI
 ========================= */
 
@@ -72,16 +272,34 @@ updateUI();
    ADD TASK
 ========================= */
 
-function addTask(text, category) {
+function addTask(text, category, status) {
 
     const newTask = {
+
         id: crypto.randomUUID(),
+
+        projectId: activeProjectId,
+
         text: text,
+
         category: category,
-        done: false,
+
+        status: status,
+
+        done: status === "Done",
+
+        description: "",
+
+        dueDate: "",
+
+        priority: "Normal",
+
+        notes: "",
+
+        subtasks: [],
+
         createdAt: Date.now()
     };
-
 
     tasks.push(newTask);
 
@@ -109,6 +327,8 @@ addTaskBtn.addEventListener(
         const category =
             categorySelect.value;
 
+        const status =
+            statusSelect.value;
 
         if (text === "") {
 
@@ -117,12 +337,11 @@ addTaskBtn.addEventListener(
             return;
         }
 
-
         addTask(
             text,
-            category
+            category,
+            status
         );
-
     }
 );
 
@@ -140,9 +359,1131 @@ taskInput.addEventListener(
             event.preventDefault();
 
             addTaskBtn.click();
+        }
+    }
+);
 
+
+/* =========================
+   PROJECT SWITCHING
+========================= */
+
+projectSwitcher.addEventListener(
+    "click",
+    event => {
+
+        const projectButton =
+            event.target.closest(
+                ".project-item"
+            );
+
+        if (!projectButton) {
+            return;
         }
 
+        activeProjectId =
+            projectButton.dataset.projectId;
+
+        activeCategory = "All";
+
+        filterButtons.forEach(button => {
+            button.classList.remove(
+                "active"
+            );
+
+            if (
+                button.dataset.category ===
+                "All"
+            ) {
+                button.classList.add(
+                    "active"
+                );
+            }
+        });
+
+        updateUI();
+    }
+);
+
+
+/* =========================
+   NEW PROJECT DIALOG
+========================= */
+
+newProjectBtn.addEventListener(
+    "click",
+    () => {
+
+        projectNameInput.value = "";
+
+        newProjectDialog.showModal();
+
+        projectNameInput.focus();
+    }
+);
+
+
+/* =========================
+   CREATE PROJECT
+========================= */
+
+createProjectBtn.addEventListener(
+    "click",
+    () => {
+
+        const name =
+            projectNameInput.value.trim();
+
+        if (name === "") {
+
+            projectNameInput.focus();
+
+            return;
+        }
+
+        const newProject = {
+
+            id: crypto.randomUUID(),
+
+            name: name
+        };
+
+        projects.push(newProject);
+
+        saveProjects(projects);
+
+        activeProjectId =
+            newProject.id;
+
+        newProjectDialog.close();
+
+        updateUI();
+    }
+);
+
+
+/* =========================
+   CREATE PROJECT ENTER
+========================= */
+
+projectNameInput.addEventListener(
+    "keydown",
+    event => {
+
+        if (event.key === "Enter") {
+
+            event.preventDefault();
+
+            createProjectBtn.click();
+        }
+    }
+);
+
+
+/* =========================
+   CANCEL PROJECT
+========================= */
+
+cancelProjectBtn.addEventListener(
+    "click",
+    () => {
+
+        newProjectDialog.close();
+    }
+);
+
+
+/* =========================
+   CLOSE PROJECT DIALOG
+========================= */
+
+closeProjectDialogBtn.addEventListener(
+    "click",
+    () => {
+
+        newProjectDialog.close();
+    }
+);
+
+
+/* =========================
+   CATEGORY FILTER
+========================= */
+
+filterButtons.forEach(
+    button => {
+
+        button.addEventListener(
+            "click",
+            () => {
+
+                activeCategory =
+                    button.dataset.category;
+
+                filterButtons.forEach(
+                    btn => {
+
+                        btn.classList.remove(
+                            "active"
+                        );
+                    }
+                );
+
+                button.classList.add(
+                    "active"
+                );
+
+                updateUI();
+            }
+        );
+    }
+);
+
+
+/* =========================
+   LIVE SEARCH
+========================= */
+
+searchInput.addEventListener(
+    "input",
+    () => {
+
+        searchText =
+            searchInput.value
+                .toLowerCase()
+                .trim();
+
+        updateUI();
+    }
+);
+
+
+/* =========================
+   SORT
+========================= */
+
+sortSelect.addEventListener(
+    "change",
+    () => {
+
+        updateUI();
+    }
+);
+
+
+/* =========================
+   VIEW TOGGLE
+========================= */
+
+listViewBtn.addEventListener(
+    "click",
+    () => {
+
+        currentView = "list";
+
+        updateViewButtons();
+
+        updateUI();
+    }
+);
+
+
+boardViewBtn.addEventListener(
+    "click",
+    () => {
+
+        currentView = "board";
+
+        updateViewButtons();
+
+        updateUI();
+    }
+);
+
+
+function updateViewButtons() {
+
+    listViewBtn.classList.toggle(
+        "active",
+        currentView === "list"
+    );
+
+    boardViewBtn.classList.toggle(
+        "active",
+        currentView === "board"
+    );
+
+    listView.hidden =
+        currentView !== "list";
+
+    boardView.hidden =
+        currentView !== "board";
+}
+
+
+/* =========================
+   GET PROJECT TASKS
+========================= */
+
+function getProjectTasks() {
+
+    return tasks.filter(
+        task =>
+            task.projectId ===
+            activeProjectId
+    );
+}
+
+
+/* =========================
+   GET VISIBLE TASKS
+========================= */
+
+function getVisibleTasks() {
+
+    let visibleTasks =
+        getProjectTasks();
+
+
+    /* CATEGORY */
+
+    if (
+        activeCategory !== "All"
+    ) {
+
+        visibleTasks =
+            visibleTasks.filter(
+                task =>
+                    task.category ===
+                    activeCategory
+            );
+    }
+
+
+    /* SEARCH */
+
+    if (searchText !== "") {
+
+        visibleTasks =
+            visibleTasks.filter(
+                task =>
+                    task.text
+                        .toLowerCase()
+                        .includes(searchText)
+            );
+    }
+
+
+    /* SORT */
+
+    if (
+        sortSelect.value === "az"
+    ) {
+
+        visibleTasks.sort(
+            (a, b) =>
+                a.text.localeCompare(
+                    b.text
+                )
+        );
+    }
+
+    return visibleTasks;
+}
+
+
+/* =========================
+   UPDATE UI
+========================= */
+
+function updateUI() {
+
+    const visibleTasks =
+        getVisibleTasks();
+
+    const projectTasks =
+        getProjectTasks();
+
+    const activeProject =
+        projects.find(
+            project =>
+                project.id ===
+                activeProjectId
+        );
+
+
+    /* PROJECTS */
+
+    renderProjects(
+        projects,
+        activeProjectId
+    );
+
+
+    /* LIST */
+
+    renderTasks(
+        visibleTasks
+    );
+
+
+    /* BOARD */
+
+    renderBoard(
+        visibleTasks
+    );
+
+
+    /* PROGRESS */
+
+    if (activeProject) {
+
+        renderProgress(
+            activeProject,
+            projectTasks
+        );
+    }
+
+
+    /* VIEW */
+
+    updateViewButtons();
+
+
+    /* DRAG AND DROP */
+
+    if (currentView === "list") {
+
+        setupListDragAndDrop();
+
+    } else {
+
+        setupBoardDragAndDrop();
+    }
+}
+
+
+/* =========================
+   LIST DRAG & DROP
+========================= */
+
+function setupListDragAndDrop() {
+
+    const taskItems =
+        document.querySelectorAll(
+            ".task-item"
+        );
+
+    taskItems.forEach(
+        item => {
+
+            item.addEventListener(
+                "dragstart",
+                event => {
+
+                    draggedTaskId =
+                        item.dataset.id ||
+                        item.dataset.taskId;
+
+                    item.classList.add(
+                        "dragging"
+                    );
+
+                    event.dataTransfer.effectAllowed =
+                        "move";
+
+                    event.dataTransfer.setData(
+                        "text/plain",
+                        draggedTaskId
+                    );
+                }
+            );
+
+
+            item.addEventListener(
+                "dragend",
+                () => {
+
+                    item.classList.remove(
+                        "dragging"
+                    );
+
+                    draggedTaskId = null;
+                }
+            );
+        }
+    );
+
+
+    taskList.addEventListener(
+        "dragover",
+        handleListDragOver
+    );
+
+    taskList.addEventListener(
+        "drop",
+        handleListDrop
+    );
+}
+
+
+function handleListDragOver(event) {
+
+    event.preventDefault();
+
+    const draggingItem =
+        document.querySelector(
+            ".task-item.dragging"
+        );
+
+    if (!draggingItem) {
+        return;
+    }
+
+    const taskItems = [
+        ...taskList.querySelectorAll(
+            ".task-item:not(.dragging)"
+        )
+    ];
+
+    let closestItem = null;
+
+    let closestOffset =
+        Number.NEGATIVE_INFINITY;
+
+
+    for (const item of taskItems) {
+
+        const box =
+            item.getBoundingClientRect();
+
+        const offset =
+            event.clientY -
+            box.top -
+            box.height / 2;
+
+        if (
+            offset < 0 &&
+            offset > closestOffset
+        ) {
+
+            closestOffset = offset;
+
+            closestItem = item;
+        }
+    }
+
+
+    if (closestItem) {
+
+        taskList.insertBefore(
+            draggingItem,
+            closestItem
+        );
+
+    } else {
+
+        taskList.appendChild(
+            draggingItem
+        );
+    }
+}
+
+
+function handleListDrop(event) {
+
+    event.preventDefault();
+
+    const orderedIds = [
+        ...taskList.querySelectorAll(
+            ".task-item"
+        )
+    ].map(
+        item =>
+            item.dataset.id ||
+            item.dataset.taskId
+    );
+
+
+    const visibleSet =
+        new Set(orderedIds);
+
+
+    const projectTasks =
+        tasks.filter(
+            task =>
+                task.projectId ===
+                activeProjectId
+        );
+
+
+    const reorderedProjectTasks = [];
+
+    orderedIds.forEach(id => {
+
+        const task =
+            projectTasks.find(
+                item =>
+                    item.id === id
+            );
+
+        if (task) {
+
+            reorderedProjectTasks.push(
+                task
+            );
+        }
+    });
+
+
+    projectTasks.forEach(task => {
+
+        if (!visibleSet.has(task.id)) {
+
+            reorderedProjectTasks.push(
+                task
+            );
+        }
+    });
+
+
+    const otherTasks =
+        tasks.filter(
+            task =>
+                task.projectId !==
+                activeProjectId
+        );
+
+
+    tasks = [
+        ...otherTasks,
+        ...reorderedProjectTasks
+    ];
+
+    saveTasks(tasks);
+
+    draggedTaskId = null;
+
+    updateUI();
+}
+
+
+/* =========================
+   BOARD DRAG & DROP
+========================= */
+
+function setupBoardDragAndDrop() {
+
+    const boardTasks =
+        document.querySelectorAll(
+            ".kanban-task"
+        );
+
+    const columns =
+        document.querySelectorAll(
+            ".kanban-tasks"
+        );
+
+
+    boardTasks.forEach(
+        card => {
+
+            card.addEventListener(
+                "dragstart",
+                event => {
+
+                    draggedTaskId =
+                        card.dataset.taskId ||
+                        card.dataset.id;
+
+                    card.classList.add(
+                        "dragging"
+                    );
+
+                    event.dataTransfer.effectAllowed =
+                        "move";
+
+                    event.dataTransfer.setData(
+                        "text/plain",
+                        draggedTaskId
+                    );
+                }
+            );
+
+
+            card.addEventListener(
+                "dragend",
+                () => {
+
+                    card.classList.remove(
+                        "dragging"
+                    );
+
+                    draggedTaskId = null;
+                }
+            );
+        }
+    );
+
+
+    columns.forEach(
+        column => {
+
+            column.addEventListener(
+                "dragover",
+                event => {
+
+                    event.preventDefault();
+
+                    column.classList.add(
+                        "drag-over"
+                    );
+                }
+            );
+
+
+            column.addEventListener(
+                "dragleave",
+                () => {
+
+                    column.classList.remove(
+                        "drag-over"
+                    );
+                }
+            );
+
+
+            column.addEventListener(
+                "drop",
+                event => {
+
+                    event.preventDefault();
+
+                    column.classList.remove(
+                        "drag-over"
+                    );
+
+                    const taskId =
+                        draggedTaskId ||
+                        event.dataTransfer.getData(
+                            "text/plain"
+                        );
+
+                    if (!taskId) {
+                        return;
+                    }
+
+
+                    const task =
+                        tasks.find(
+                            item =>
+                                item.id ===
+                                taskId
+                        );
+
+                    if (!task) {
+                        return;
+                    }
+
+
+                    let newStatus =
+                        "To Do";
+
+
+                    if (
+                        column.id ===
+                        "inProgressColumn"
+                    ) {
+
+                        newStatus =
+                            "In Progress";
+
+                    } else if (
+                        column.id ===
+                        "inReviewColumn"
+                    ) {
+
+                        newStatus =
+                            "In Review";
+
+                    } else if (
+                        column.id ===
+                        "doneColumn"
+                    ) {
+
+                        newStatus =
+                            "Done";
+                    }
+
+
+                    task.status =
+                        newStatus;
+
+                    task.done =
+                        newStatus === "Done";
+
+
+                    saveTasks(tasks);
+
+                    draggedTaskId = null;
+
+                    updateUI();
+                }
+            );
+        }
+    );
+}
+
+
+/* =========================
+   OPEN TASK DETAIL
+========================= */
+
+document.addEventListener(
+    "click",
+    event => {
+
+        const taskCard =
+            event.target.closest(
+                ".task-item, .kanban-task"
+            );
+
+        if (!taskCard) {
+            return;
+        }
+
+
+        if (
+            event.target.closest(
+                ".delete-btn"
+            )
+        ) {
+            return;
+        }
+
+
+        const taskId =
+            taskCard.dataset.id ||
+            taskCard.dataset.taskId;
+
+        if (!taskId) {
+            return;
+        }
+
+        openTaskDetail(taskId);
+    }
+);
+
+
+/* =========================
+   OPEN DETAIL
+========================= */
+
+function openTaskDetail(taskId) {
+
+    const task =
+        tasks.find(
+            item =>
+                item.id === taskId
+        );
+
+    if (!task) {
+        return;
+    }
+
+    activeDetailTaskId = taskId;
+
+    renderTaskDetail(task);
+
+    renderSubtasks(
+        task.subtasks || []
+    );
+
+    taskDetailDialog.showModal();
+}
+
+
+/* =========================
+   CLOSE DETAIL
+========================= */
+
+closeDetailBtn.addEventListener(
+    "click",
+    () => {
+
+        taskDetailDialog.close();
+
+        activeDetailTaskId = null;
+    }
+);
+
+
+/* =========================
+   SAVE DETAIL FIELDS
+========================= */
+
+function saveDetailChanges() {
+
+    if (!activeDetailTaskId) {
+        return;
+    }
+
+    const task =
+        tasks.find(
+            item =>
+                item.id ===
+                activeDetailTaskId
+        );
+
+    if (!task) {
+        return;
+    }
+
+
+    task.description =
+        detailDescription.value;
+
+    task.status =
+        detailStatus.value;
+
+    task.priority =
+        detailPriority.value;
+
+    task.dueDate =
+        detailDueDate.value;
+
+    task.category =
+        detailCategory.value;
+
+    task.notes =
+        taskNotes.value;
+
+    task.done =
+        task.status === "Done";
+
+
+    saveTasks(tasks);
+
+    updateUI();
+}
+
+
+detailStatus.addEventListener(
+    "change",
+    saveDetailChanges
+);
+
+detailPriority.addEventListener(
+    "change",
+    saveDetailChanges
+);
+
+detailDueDate.addEventListener(
+    "change",
+    saveDetailChanges
+);
+
+detailCategory.addEventListener(
+    "change",
+    saveDetailChanges
+);
+
+detailDescription.addEventListener(
+    "change",
+    saveDetailChanges
+);
+
+
+/* =========================
+   SAVE NOTES
+========================= */
+
+saveNotesBtn.addEventListener(
+    "click",
+    () => {
+
+        if (!activeDetailTaskId) {
+            return;
+        }
+
+        const task =
+            tasks.find(
+                item =>
+                    item.id ===
+                    activeDetailTaskId
+            );
+
+        if (!task) {
+            return;
+        }
+
+        task.notes =
+            taskNotes.value;
+
+        saveTasks(tasks);
+
+        updateUI();
+    }
+);
+
+
+/* =========================
+   ADD SUBTASK
+========================= */
+
+addSubtaskBtn.addEventListener(
+    "click",
+    addSubtask
+);
+
+
+subtaskInput.addEventListener(
+    "keydown",
+    event => {
+
+        if (event.key === "Enter") {
+
+            event.preventDefault();
+
+            addSubtask();
+        }
+    }
+);
+
+
+function addSubtask() {
+
+    if (!activeDetailTaskId) {
+        return;
+    }
+
+    const text =
+        subtaskInput.value.trim();
+
+    if (text === "") {
+        return;
+    }
+
+
+    const task =
+        tasks.find(
+            item =>
+                item.id ===
+                activeDetailTaskId
+        );
+
+    if (!task) {
+        return;
+    }
+
+
+    if (!Array.isArray(task.subtasks)) {
+        task.subtasks = [];
+    }
+
+
+    task.subtasks.push({
+
+        id: crypto.randomUUID(),
+
+        text: text,
+
+        done: false
+    });
+
+
+    saveTasks(tasks);
+
+    subtaskInput.value = "";
+
+    renderSubtasks(
+        task.subtasks
+    );
+}
+
+
+/* =========================
+   SUBTASK CHECK / DELETE
+========================= */
+
+subtaskList.addEventListener(
+    "click",
+    event => {
+
+        if (!activeDetailTaskId) {
+            return;
+        }
+
+
+        const task =
+            tasks.find(
+                item =>
+                    item.id ===
+                    activeDetailTaskId
+            );
+
+        if (!task) {
+            return;
+        }
+
+
+        const checkbox =
+            event.target.closest(
+                ".subtask-checkbox"
+            );
+
+        const deleteButton =
+            event.target.closest(
+                ".subtask-delete"
+            );
+
+
+        if (checkbox) {
+
+            const subtaskId =
+                checkbox.dataset.subtaskId;
+
+            const subtask =
+                task.subtasks.find(
+                    item =>
+                        item.id ===
+                        subtaskId
+                );
+
+            if (subtask) {
+
+                subtask.done =
+                    checkbox.checked;
+            }
+
+            saveTasks(tasks);
+
+            renderSubtasks(
+                task.subtasks
+            );
+
+            return;
+        }
+
+
+        if (deleteButton) {
+
+            const subtaskId =
+                deleteButton.dataset.subtaskId;
+
+            task.subtasks =
+                task.subtasks.filter(
+                    item =>
+                        item.id !==
+                        subtaskId
+                );
+
+            saveTasks(tasks);
+
+            renderSubtasks(
+                task.subtasks
+            );
+        }
     }
 );
 
@@ -164,34 +1505,36 @@ document.addEventListener(
         }
 
 
-        const taskItem =
-            event.target.closest(".task-item");
+        const taskCard =
+            event.target.closest(
+                ".task-item, .kanban-task"
+            );
 
-
-        if (!taskItem) {
+        if (!taskCard) {
             return;
         }
 
 
-        deleteTask(
-            taskItem.dataset.id
-        );
+        const taskId =
+            taskCard.dataset.id ||
+            taskCard.dataset.taskId;
 
+        deleteTask(taskId);
     }
 );
 
 
 /* =========================
-   DELETE TASK
+   DELETE FUNCTION
 ========================= */
 
 function deleteTask(taskId) {
 
     const originalIndex =
         tasks.findIndex(
-            task => task.id === taskId
+            task =>
+                task.id === taskId
         );
-
 
     if (originalIndex === -1) {
         return;
@@ -204,7 +1547,8 @@ function deleteTask(taskId) {
 
     tasks =
         tasks.filter(
-            task => task.id !== taskId
+            task =>
+                task.id !== taskId
         );
 
 
@@ -212,17 +1556,15 @@ function deleteTask(taskId) {
 
     updateUI();
 
-
     showUndoToast(
         removedTask,
         originalIndex
     );
-
 }
 
 
 /* =========================
-   UNDO CLOSURE
+   UNDO
 ========================= */
 
 function showUndoToast(
@@ -252,11 +1594,9 @@ function showUndoToast(
             return;
         }
 
-
         undoUsed = true;
 
         clearTimeout(timeoutId);
-
 
         tasks.splice(
             originalIndex,
@@ -264,494 +1604,38 @@ function showUndoToast(
             removedTask
         );
 
-
         saveTasks(tasks);
 
         updateUI();
 
         undoToast.hidden = true;
-
     }
 
 
     undoBtn.onclick =
         undoDelete;
-
 }
 
 
 /* =========================
-   CATEGORY FILTER
-========================= */
-
-filterButtons.forEach(
-    button => {
-
-        button.addEventListener(
-            "click",
-            () => {
-
-                activeCategory =
-                    button.dataset.category;
-
-
-                filterButtons.forEach(
-                    btn => {
-
-                        btn.classList.remove(
-                            "active"
-                        );
-
-                    }
-                );
-
-
-                button.classList.add(
-                    "active"
-                );
-
-
-                updateUI();
-
-            }
-        );
-
-    }
-);
-
-
-/* =========================
-   LIVE SEARCH
-========================= */
-
-searchInput.addEventListener(
-    "input",
-    () => {
-
-        searchText =
-            searchInput.value
-                .toLowerCase()
-                .trim();
-
-
-        updateUI();
-
-    }
-);
-
-
-/* =========================
-   SORT
-========================= */
-
-sortSelect.addEventListener(
-    "change",
-    () => {
-
-        updateUI();
-
-    }
-);
-
-
-/* =========================
-   GET VISIBLE TASKS
-========================= */
-
-function getVisibleTasks() {
-
-    let visibleTasks =
-        [...tasks];
-
-
-    /* CATEGORY */
-
-    if (
-        activeCategory !== "All"
-    ) {
-
-        visibleTasks =
-            visibleTasks.filter(
-                task =>
-                    task.category ===
-                    activeCategory
-            );
-
-    }
-
-
-    /* SEARCH */
-
-    if (
-        searchText !== ""
-    ) {
-
-        visibleTasks =
-            visibleTasks.filter(
-                task =>
-                    task.text
-                        .toLowerCase()
-                        .includes(searchText)
-            );
-
-    }
-
-
-    /*
-       A-Z sorting only.
-
-       Newest keeps the actual
-       array order so drag order
-       is preserved.
-    */
-
-    if (
-        sortSelect.value === "az"
-    ) {
-
-        visibleTasks.sort(
-            (a, b) =>
-                a.text.localeCompare(
-                    b.text
-                )
-        );
-
-    }
-
-
-    return visibleTasks;
-
-}
-
-
-/* =========================
-   UPDATE UI
-========================= */
-
-function updateUI() {
-
-    const visibleTasks =
-        getVisibleTasks();
-
-
-    renderTasks(
-        visibleTasks
-    );
-
-
-    setupDragAndDrop();
-
-}
-
-
-/* =========================
-   DRAG & DROP
-========================= */
-
-function setupDragAndDrop() {
-
-    const taskItems =
-        document.querySelectorAll(
-            ".task-item"
-        );
-
-
-    taskItems.forEach(
-        item => {
-
-            /* DRAG START */
-
-            item.addEventListener(
-                "dragstart",
-                event => {
-
-                    draggedTaskId =
-                        item.dataset.id;
-
-
-                    item.classList.add(
-                        "dragging"
-                    );
-
-
-                    event.dataTransfer.effectAllowed =
-                        "move";
-
-
-                    event.dataTransfer.setData(
-                        "text/plain",
-                        draggedTaskId
-                    );
-
-                }
-            );
-
-
-            /* DRAG END */
-
-            item.addEventListener(
-                "dragend",
-                () => {
-
-                    item.classList.remove(
-                        "dragging"
-                    );
-
-                    draggedTaskId = null;
-
-                }
-            );
-
-        }
-    );
-
-
-    /*
-       IMPORTANT:
-
-       Dragover is handled by the
-       whole task list instead of
-       individual cards.
-
-       This makes both:
-
-       TOP → BOTTOM
-       BOTTOM → TOP
-
-       work correctly.
-    */
-
-    taskList.addEventListener(
-        "dragover",
-        handleDragOver
-    );
-
-
-    taskList.addEventListener(
-        "drop",
-        handleDrop
-    );
-
-}
-
-
-/* =========================
-   DRAG OVER
-========================= */
-
-function handleDragOver(event) {
-
-    event.preventDefault();
-
-
-    const draggingItem =
-        document.querySelector(
-            ".task-item.dragging"
-        );
-
-
-    if (!draggingItem) {
-        return;
-    }
-
-
-    const taskItems =
-        [
-            ...taskList.querySelectorAll(
-                ".task-item:not(.dragging)"
-            )
-        ];
-
-
-    let closestItem = null;
-
-    let closestOffset =
-        Number.NEGATIVE_INFINITY;
-
-
-    for (const item of taskItems) {
-
-        const box =
-            item.getBoundingClientRect();
-
-
-        const offset =
-            event.clientY -
-            box.top -
-            (box.height / 2);
-
-
-        if (
-            offset < 0 &&
-            offset > closestOffset
-        ) {
-
-            closestOffset = offset;
-
-            closestItem = item;
-
-        }
-
-    }
-
-
-    if (closestItem) {
-
-        taskList.insertBefore(
-            draggingItem,
-            closestItem
-        );
-
-    } else {
-
-        taskList.appendChild(
-            draggingItem
-        );
-
-    }
-
-}
-
-
-/* =========================
-   DROP
-========================= */
-
-function handleDrop(event) {
-
-    event.preventDefault();
-
-
-    const draggedItem =
-        document.querySelector(
-            ".task-item.dragging"
-        );
-
-
-    if (!draggedItem) {
-        return;
-    }
-
-
-    /*
-       Read the final visual order
-       from the DOM.
-    */
-
-    const orderedIds =
-        [
-            ...taskList.querySelectorAll(
-                ".task-item"
-            )
-        ].map(
-            item => item.dataset.id
-        );
-
-
-    /*
-       Rebuild the original tasks
-       array using the new order.
-    */
-
-    const taskMap =
-        new Map(
-            tasks.map(
-                task => [
-                    task.id,
-                    task
-                ]
-            )
-        );
-
-
-    const reorderedTasks = [];
-
-
-    orderedIds.forEach(
-        id => {
-
-            const task =
-                taskMap.get(id);
-
-
-            if (task) {
-
-                reorderedTasks.push(
-                    task
-                );
-
-            }
-
-        }
-    );
-
-
-    /*
-       Add any tasks that are not
-       currently visible.
-
-       This is important when
-       search/filter is active.
-    */
-
-    tasks.forEach(
-        task => {
-
-            if (
-                !orderedIds.includes(
-                    task.id
-                )
-            ) {
-
-                reorderedTasks.push(
-                    task
-                );
-
-            }
-
-        }
-    );
-
-
-    tasks =
-        reorderedTasks;
-
-
-    /*
-       Save the new order.
-    */
-
-    saveTasks(tasks);
-
-
-    draggedItem.classList.remove(
-        "dragging"
-    );
-
-
-    draggedTaskId = null;
-
-
-    /*
-       Render again.
-    */
-
-    updateUI();
-
-}
-
-
-/* =========================
-   EXPORT JSON
+   EXPORT
 ========================= */
 
 exportBtn.addEventListener(
     "click",
     () => {
 
+        const data = {
+
+            projects: projects,
+
+            tasks: tasks
+        };
+
+
         const json =
             JSON.stringify(
-                tasks,
+                data,
                 null,
                 2
             );
@@ -761,40 +1645,43 @@ exportBtn.addEventListener(
             new Blob(
                 [json],
                 {
-                    type: "application/json"
+                    type:
+                        "application/json"
                 }
             );
 
 
         const url =
-            URL.createObjectURL(blob);
+            URL.createObjectURL(
+                blob
+            );
 
 
         const link =
-            document.createElement("a");
-
+            document.createElement(
+                "a"
+            );
 
         link.href = url;
 
         link.download =
             "tasks.json";
 
-
-        document.body.appendChild(link);
+        document.body.appendChild(
+            link
+        );
 
         link.click();
 
         link.remove();
 
-
         URL.revokeObjectURL(url);
-
     }
 );
 
 
 /* =========================
-   IMPORT JSON
+   IMPORT
 ========================= */
 
 importInput.addEventListener(
@@ -803,7 +1690,6 @@ importInput.addEventListener(
 
         const file =
             event.target.files[0];
-
 
         if (!file) {
             return;
@@ -819,84 +1705,192 @@ importInput.addEventListener(
 
                 try {
 
-                    const importedTasks =
+                    const importedData =
                         JSON.parse(
                             event.target.result
                         );
 
 
+                    /* WEEK 3 FORMAT */
+
                     if (
+                        importedData &&
                         !Array.isArray(
-                            importedTasks
+                            importedData
+                        ) &&
+                        Array.isArray(
+                            importedData.projects
+                        ) &&
+                        Array.isArray(
+                            importedData.tasks
                         )
                     ) {
 
-                        throw new Error(
-                            "Invalid task data"
-                        );
+                        projects =
+                            importedData.projects;
+
+                        tasks =
+                            importedData.tasks;
+
+                        if (
+                            projects.length ===
+                            0
+                        ) {
+
+                            projects.push({
+                                id:
+                                    crypto.randomUUID(),
+                                name:
+                                    "My Project"
+                            });
+                        }
+
+
+                        activeProjectId =
+                            projects[0].id;
 
                     }
 
 
-                    const validTasks =
-                        importedTasks.filter(
-                            task =>
-                                task &&
-                                typeof task.text ===
-                                    "string" &&
-                                typeof task.category ===
-                                    "string"
-                        );
+                    /* WEEK 2 FORMAT */
 
+                    else if (
+                        Array.isArray(
+                            importedData
+                        )
+                    ) {
+
+                        if (
+                            projects.length ===
+                            0
+                        ) {
+
+                            projects.push({
+                                id:
+                                    crypto.randomUUID(),
+                                name:
+                                    "My Project"
+                            });
+
+                            saveProjects(
+                                projects
+                            );
+                        }
+
+
+                        activeProjectId =
+                            projects[0].id;
+
+
+                        tasks =
+                            importedData;
+                    }
+
+
+                    else {
+
+                        throw new Error(
+                            "Invalid task data"
+                        );
+                    }
+
+
+                    /* NORMALIZE TASKS */
 
                     tasks =
-                        validTasks.map(
-                            task => ({
+                        tasks
+                            .filter(
+                                task =>
+                                    task &&
+                                    typeof task.text ===
+                                        "string"
+                            )
+                            .map(
+                                task => ({
 
-                                id:
-                                    task.id ||
-                                    crypto.randomUUID(),
+                                    id:
+                                        task.id ||
+                                        crypto.randomUUID(),
 
-                                text:
-                                    task.text,
+                                    projectId:
+                                        task.projectId ||
+                                        activeProjectId,
 
-                                category:
-                                    task.category,
+                                    text:
+                                        task.text,
 
-                                done:
-                                    Boolean(
-                                        task.done
-                                    ),
+                                    category:
+                                        task.category ||
+                                        "Work",
 
-                                createdAt:
-                                    task.createdAt ||
-                                    Date.now()
+                                    status:
+                                        task.status ||
+                                        (
+                                            task.done
+                                                ? "Done"
+                                                : "To Do"
+                                        ),
 
-                            })
-                        );
+                                    done:
+                                        task.status ===
+                                            "Done" ||
+                                        Boolean(
+                                            task.done
+                                        ),
 
+                                    description:
+                                        task.description ||
+                                        "",
+
+                                    dueDate:
+                                        task.dueDate ||
+                                        "",
+
+                                    priority:
+                                        task.priority ||
+                                        "Normal",
+
+                                    notes:
+                                        task.notes ||
+                                        "",
+
+                                    subtasks:
+                                        Array.isArray(
+                                            task.subtasks
+                                        )
+                                            ? task.subtasks
+                                            : [],
+
+                                    createdAt:
+                                        task.createdAt ||
+                                        Date.now()
+                                })
+                            );
+
+
+                    saveProjects(projects);
 
                     saveTasks(tasks);
 
                     updateUI();
-
 
                     importInput.value = "";
 
 
                 } catch (error) {
 
+                    console.error(
+                        error
+                    );
+
                     alert(
                         "Invalid JSON file. Please import a valid tasks.json file."
                     );
-
                 }
-
             };
 
 
         reader.readAsText(file);
-
     }
 );
 
@@ -914,29 +1908,37 @@ document.addEventListener(
 
 
         const isTyping =
-            activeElement.tagName === "INPUT" ||
-            activeElement.tagName === "TEXTAREA" ||
-            activeElement.tagName === "SELECT";
+            activeElement &&
+            (
+                activeElement.tagName ===
+                    "INPUT" ||
+                activeElement.tagName ===
+                    "TEXTAREA" ||
+                activeElement.tagName ===
+                    "SELECT"
+            );
 
 
         /* N → NEW TASK */
 
         if (
-            event.key.toLowerCase() === "n" &&
+            event.key.toLowerCase() ===
+                "n" &&
             !isTyping
         ) {
 
             event.preventDefault();
 
             taskInput.focus();
-
         }
 
 
         /* ESCAPE → CLEAR SEARCH */
 
         if (
-            event.key === "Escape"
+            event.key === "Escape" &&
+            !taskDetailDialog.open &&
+            !newProjectDialog.open
         ) {
 
             searchInput.value = "";
@@ -944,8 +1946,6 @@ document.addEventListener(
             searchText = "";
 
             updateUI();
-
         }
-
     }
 );
