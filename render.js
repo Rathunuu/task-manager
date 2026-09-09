@@ -13,19 +13,29 @@ export function renderTasks(tasks) {
     const taskCount =
         document.getElementById("taskCount");
 
+    if (!taskList) {
+        return;
+    }
+
     taskList.innerHTML = "";
 
-    taskCount.textContent =
-        tasks.length;
+    if (taskCount) {
+        taskCount.textContent =
+            tasks.length;
+    }
 
     if (tasks.length === 0) {
 
-        emptyState.hidden = false;
+        if (emptyState) {
+            emptyState.hidden = false;
+        }
 
         return;
     }
 
-    emptyState.hidden = true;
+    if (emptyState) {
+        emptyState.hidden = true;
+    }
 
 
     tasks.forEach((task, index) => {
@@ -51,10 +61,12 @@ export function renderTasks(tasks) {
             index;
 
 
-        const categoryClass =
-            String(task.category || "Work")
-                .toLowerCase();
+        const category =
+            task.category || "Work";
 
+        const categoryClass =
+            String(category)
+                .toLowerCase();
 
         const status =
             task.status || "To Do";
@@ -69,22 +81,23 @@ export function renderTasks(tasks) {
                 ⋮⋮
             </div>
 
-
             <div class="task-content">
 
                 <strong class="task-title">
-                    ${escapeHTML(task.text || "")}
+                    ${escapeHTML(
+                        task.text || ""
+                    )}
                 </strong>
-
 
                 <div class="task-meta">
 
                     <span
-                        class="category-badge category-${escapeHTML(categoryClass)}"
+                        class="category-badge category-${escapeHTML(
+                            categoryClass
+                        )}"
                     >
-                        ${escapeHTML(task.category || "Work")}
+                        ${escapeHTML(category)}
                     </span>
-
 
                     <span class="status-badge">
                         ${escapeHTML(status)}
@@ -94,10 +107,12 @@ export function renderTasks(tasks) {
 
             </div>
 
-
             <button
+                type="button"
                 class="delete-btn"
-                aria-label="Delete ${escapeHTML(task.text || "")}"
+                aria-label="Delete ${escapeHTML(
+                    task.text || ""
+                )}"
             >
                 Delete
             </button>
@@ -117,15 +132,26 @@ export function renderTasks(tasks) {
 ========================= */
 
 export function renderProjects(
-    projects,
+    projects = [],
     activeProjectId
 ) {
 
     const projectSwitcher =
-        document.getElementById("projectSwitcher");
+        document.getElementById(
+            "projectSwitcher"
+        );
+
+    if (!projectSwitcher) {
+        return;
+    }
+
 
     projectSwitcher.innerHTML = "";
 
+
+    /* =========================
+       PROJECT BUTTONS
+    ========================= */
 
     projects.forEach(project => {
 
@@ -140,10 +166,15 @@ export function renderProjects(
         button.dataset.projectId =
             project.id;
 
-        if (project.id === activeProjectId) {
 
-            button.classList.add("active");
+        if (
+            project.id ===
+            activeProjectId
+        ) {
 
+            button.classList.add(
+                "active"
+            );
         }
 
 
@@ -151,7 +182,9 @@ export function renderProjects(
             project.name;
 
 
-        projectSwitcher.appendChild(button);
+        projectSwitcher.appendChild(
+            button
+        );
 
     });
 
@@ -161,15 +194,33 @@ export function renderProjects(
     ========================= */
 
     const newProjectBtn =
-        document.getElementById("newProjectBtn");
+        document.getElementById(
+            "newProjectBtn"
+        );
 
 
     if (newProjectBtn) {
 
-        projectSwitcher.appendChild(
-            newProjectBtn
-        );
+        /*
+           Move the existing button into
+           the project switcher only once.
+        */
 
+        if (
+            newProjectBtn.parentElement !==
+            projectSwitcher
+        ) {
+
+            projectSwitcher.appendChild(
+                newProjectBtn
+            );
+
+        } else {
+
+            projectSwitcher.appendChild(
+                newProjectBtn
+            );
+        }
     }
 
 }
@@ -179,21 +230,29 @@ export function renderProjects(
    RENDER KANBAN BOARD
 ========================= */
 
-export function renderBoard(tasks) {
+export function renderBoard(tasks = []) {
 
     const columns = {
 
         "To Do":
-            document.getElementById("todoColumn"),
+            document.getElementById(
+                "todoColumn"
+            ),
 
         "In Progress":
-            document.getElementById("inProgressColumn"),
+            document.getElementById(
+                "inProgressColumn"
+            ),
 
         "In Review":
-            document.getElementById("inReviewColumn"),
+            document.getElementById(
+                "inReviewColumn"
+            ),
 
         "Done":
-            document.getElementById("doneColumn")
+            document.getElementById(
+                "doneColumn"
+            )
 
     };
 
@@ -201,16 +260,24 @@ export function renderBoard(tasks) {
     const counts = {
 
         "To Do":
-            document.getElementById("todoCount"),
+            document.getElementById(
+                "todoCount"
+            ),
 
         "In Progress":
-            document.getElementById("inProgressCount"),
+            document.getElementById(
+                "inProgressCount"
+            ),
 
         "In Review":
-            document.getElementById("inReviewCount"),
+            document.getElementById(
+                "inReviewCount"
+            ),
 
         "Done":
-            document.getElementById("doneCount")
+            document.getElementById(
+                "doneCount"
+            )
 
     };
 
@@ -219,30 +286,38 @@ export function renderBoard(tasks) {
        CLEAR COLUMNS
     ========================= */
 
-    Object.values(columns).forEach(column => {
+    Object.values(columns).forEach(
+        column => {
 
-        if (column) {
-            column.innerHTML = "";
+            if (column) {
+
+                column.innerHTML = "";
+
+            }
+
         }
-
-    });
+    );
 
 
     /* =========================
        RESET COUNTS
     ========================= */
 
-    Object.values(counts).forEach(count => {
+    Object.values(counts).forEach(
+        count => {
 
-        if (count) {
-            count.textContent = "0";
+            if (count) {
+
+                count.textContent = "0";
+
+            }
+
         }
-
-    });
+    );
 
 
     /* =========================
-       ADD TASKS
+       ADD TASKS TO COLUMNS
     ========================= */
 
     tasks.forEach(task => {
@@ -250,8 +325,10 @@ export function renderBoard(tasks) {
         const status =
             task.status || "To Do";
 
+
         const column =
             columns[status];
+
 
         if (!column) {
             return;
@@ -259,15 +336,20 @@ export function renderBoard(tasks) {
 
 
         const card =
-            document.createElement("div");
+            document.createElement(
+                "div"
+            );
+
 
         card.className =
             "kanban-task";
+
 
         card.setAttribute(
             "draggable",
             "true"
         );
+
 
         card.dataset.taskId =
             task.id;
@@ -276,23 +358,33 @@ export function renderBoard(tasks) {
             task.id;
 
 
+        const category =
+            task.category || "Work";
+
+
+        const categoryClass =
+            String(category)
+                .toLowerCase();
+
+
         card.innerHTML = `
 
             <div class="kanban-task-content">
 
                 <strong class="task-title">
-                    ${escapeHTML(task.text || "")}
+                    ${escapeHTML(
+                        task.text || ""
+                    )}
                 </strong>
-
 
                 <div class="task-meta">
 
                     <span
                         class="category-badge category-${escapeHTML(
-                            String(task.category || "Work").toLowerCase()
+                            categoryClass
                         )}"
                     >
-                        ${escapeHTML(task.category || "Work")}
+                        ${escapeHTML(category)}
                     </span>
 
                 </div>
@@ -311,19 +403,28 @@ export function renderBoard(tasks) {
        UPDATE COLUMN COUNTS
     ========================= */
 
-    Object.keys(columns).forEach(status => {
-
-        if (counts[status]) {
+    Object.keys(columns).forEach(
+        status => {
 
             const column =
                 columns[status];
 
-            counts[status].textContent =
-                column.children.length;
+            const count =
+                counts[status];
+
+
+            if (
+                column &&
+                count
+            ) {
+
+                count.textContent =
+                    column.children.length;
+
+            }
 
         }
-
-    });
+    );
 
 }
 
@@ -375,6 +476,10 @@ export function renderTaskDetail(task) {
         );
 
 
+    /* =========================
+       TITLE
+    ========================= */
+
     if (title) {
 
         title.textContent =
@@ -383,13 +488,38 @@ export function renderTaskDetail(task) {
     }
 
 
+    /* =========================
+       DESCRIPTION
+    ========================= */
+
     if (description) {
 
-        description.textContent =
-            task.description || "No description";
+        /*
+           textarea/input → value
+           normal text element → textContent
+        */
+
+        if (
+            "value" in description
+        ) {
+
+            description.value =
+                task.description || "";
+
+        } else {
+
+            description.textContent =
+                task.description ||
+                "No description";
+
+        }
 
     }
 
+
+    /* =========================
+       STATUS
+    ========================= */
 
     if (status) {
 
@@ -399,6 +529,10 @@ export function renderTaskDetail(task) {
     }
 
 
+    /* =========================
+       PRIORITY
+    ========================= */
+
     if (priority) {
 
         priority.value =
@@ -406,6 +540,10 @@ export function renderTaskDetail(task) {
 
     }
 
+
+    /* =========================
+       DUE DATE
+    ========================= */
 
     if (dueDate) {
 
@@ -415,13 +553,39 @@ export function renderTaskDetail(task) {
     }
 
 
+    /* =========================
+       CATEGORY
+    ========================= */
+
     if (category) {
 
-        category.textContent =
-            task.category || "Work";
+        /*
+           If category is a select/input,
+           use value.
+
+           Otherwise use textContent.
+        */
+
+        if (
+            "value" in category
+        ) {
+
+            category.value =
+                task.category || "Work";
+
+        } else {
+
+            category.textContent =
+                task.category || "Work";
+
+        }
 
     }
 
+
+    /* =========================
+       NOTES
+    ========================= */
 
     if (notes) {
 
@@ -437,7 +601,9 @@ export function renderTaskDetail(task) {
    RENDER SUBTASKS
 ========================= */
 
-export function renderSubtasks(subtasks = []) {
+export function renderSubtasks(
+    subtasks = []
+) {
 
     const subtaskList =
         document.getElementById(
@@ -452,16 +618,22 @@ export function renderSubtasks(subtasks = []) {
     subtaskList.innerHTML = "";
 
 
-    if (subtasks.length === 0) {
+    if (
+        !Array.isArray(subtasks) ||
+        subtasks.length === 0
+    ) {
 
         const emptyMessage =
-            document.createElement("p");
+            document.createElement(
+                "p"
+            );
 
         emptyMessage.className =
             "subtask-empty";
 
         emptyMessage.textContent =
             "No subtasks yet.";
+
 
         subtaskList.appendChild(
             emptyMessage
@@ -471,80 +643,99 @@ export function renderSubtasks(subtasks = []) {
     }
 
 
-    subtasks.forEach(subtask => {
+    subtasks.forEach(
+        subtask => {
 
-        const item =
-            document.createElement("div");
+            const item =
+                document.createElement(
+                    "div"
+                );
 
-        item.className =
-            "subtask-item";
-
-
-        const checkbox =
-            document.createElement("input");
-
-        checkbox.type =
-            "checkbox";
-
-        checkbox.className =
-            "subtask-checkbox";
-
-        checkbox.dataset.subtaskId =
-            subtask.id;
-
-        checkbox.checked =
-            Boolean(subtask.completed);
+            item.className =
+                "subtask-item";
 
 
-        const label =
-            document.createElement("label");
+            /* CHECKBOX */
 
-        label.textContent =
-            subtask.text || "";
+            const checkbox =
+                document.createElement(
+                    "input"
+                );
 
-        if (subtask.completed) {
+            checkbox.type =
+                "checkbox";
 
-            label.classList.add(
-                "completed"
+            checkbox.className =
+                "subtask-checkbox";
+
+            checkbox.dataset.subtaskId =
+                subtask.id;
+
+            checkbox.checked =
+                Boolean(subtask.done);
+
+
+            /* LABEL */
+
+            const label =
+                document.createElement(
+                    "label"
+                );
+
+            label.textContent =
+                subtask.text || "";
+
+
+            if (subtask.done) {
+
+                label.classList.add(
+                    "completed"
+                );
+
+            }
+
+
+            /* DELETE BUTTON */
+
+            const deleteButton =
+                document.createElement(
+                    "button"
+                );
+
+            deleteButton.type =
+                "button";
+
+            deleteButton.className =
+                "subtask-delete";
+
+            deleteButton.dataset.subtaskId =
+                subtask.id;
+
+            deleteButton.textContent =
+                "Delete";
+
+
+            /* APPEND */
+
+            item.appendChild(
+                checkbox
+            );
+
+            item.appendChild(
+                label
+            );
+
+            item.appendChild(
+                deleteButton
+            );
+
+
+            subtaskList.appendChild(
+                item
             );
 
         }
-
-
-        const deleteButton =
-            document.createElement("button");
-
-        deleteButton.type =
-            "button";
-
-        deleteButton.className =
-            "subtask-delete";
-
-        deleteButton.dataset.subtaskId =
-            subtask.id;
-
-        deleteButton.textContent =
-            "Delete";
-
-
-        item.appendChild(
-            checkbox
-        );
-
-        item.appendChild(
-            label
-        );
-
-        item.appendChild(
-            deleteButton
-        );
-
-
-        subtaskList.appendChild(
-            item
-        );
-
-    });
+    );
 
 }
 
@@ -555,7 +746,7 @@ export function renderSubtasks(subtasks = []) {
 
 export function renderProgress(
     project,
-    projectTasks
+    projectTasks = []
 ) {
 
     const activeProjectName =
@@ -584,13 +775,18 @@ export function renderProgress(
     }
 
 
+    /* =========================
+       TASK COUNTS
+    ========================= */
+
     const totalTasks =
         projectTasks.length;
 
 
     const completedTasks =
-        projectTasks.filter(task =>
-            task.status === "Done"
+        projectTasks.filter(
+            task =>
+                task.status === "Done"
         ).length;
 
 
@@ -619,14 +815,17 @@ export function renderProgress(
 
 
     /* =========================
-       PROGRESS PERCENTAGE
+       PERCENTAGE
     ========================= */
 
     const percentage =
         totalTasks === 0
             ? 0
             : Math.round(
-                (completedTasks / totalTasks) * 100
+                (
+                    completedTasks /
+                    totalTasks
+                ) * 100
             );
 
 
@@ -661,7 +860,9 @@ export function renderProgress(
 function escapeHTML(text) {
 
     const div =
-        document.createElement("div");
+        document.createElement(
+            "div"
+        );
 
     div.textContent =
         String(text ?? "");
