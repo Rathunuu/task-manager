@@ -29,7 +29,7 @@ function App() {
     );
 
     return (
-        <div>
+        <div className="app">
             <h1>Task Manager React</h1>
 
             <h2>Projects</h2>
