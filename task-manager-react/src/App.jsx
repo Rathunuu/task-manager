@@ -3,6 +3,7 @@ import ProjectSwitcher from "./ProjectSwitcher";
 import TaskList from "./TaskList";
 import { loadTasks, loadProjects } from "./storage";
 
+
 function App() {
     const [tasks, setTasks] = useState([]);
     const [projects, setProjects] = useState([]);
@@ -43,6 +44,11 @@ function App() {
             <h2>Tasks</h2>
 
             <TaskList tasks={activeProjectTasks} />
+
+            <h2>React Map Exercise</h2>
+
+            <NameList />
+            <Counter />
         </div>
     );
 }
