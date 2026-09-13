@@ -1,15 +1,88 @@
+const TASKS_KEY = "task-manager-tasks";
+const PROJECTS_KEY = "task-manager-projects";
+
+
 export function loadTasks() {
-  return JSON.parse(localStorage.getItem("tasks")) || [];
+
+    const storedTasks =
+        localStorage.getItem(TASKS_KEY);
+
+    if (!storedTasks) {
+        return [];
+    }
+
+    try {
+
+        const tasks =
+            JSON.parse(storedTasks);
+
+        if (!Array.isArray(tasks)) {
+            return [];
+        }
+
+        return tasks;
+
+    } catch (error) {
+
+        console.error(
+            "Could not load tasks:",
+            error
+        );
+
+        return [];
+
+    }
 }
+
 
 export function saveTasks(tasks) {
-  localStorage.setItem("tasks", JSON.stringify(tasks));
+
+    localStorage.setItem(
+        TASKS_KEY,
+        JSON.stringify(tasks)
+    );
+
 }
+
 
 export function loadProjects() {
-  return JSON.parse(localStorage.getItem("projects")) || [];
+
+    const storedProjects =
+        localStorage.getItem(PROJECTS_KEY);
+
+    if (!storedProjects) {
+        return [];
+    }
+
+    try {
+
+        const projects =
+            JSON.parse(storedProjects);
+
+        if (!Array.isArray(projects)) {
+            return [];
+        }
+
+        return projects;
+
+    } catch (error) {
+
+        console.error(
+            "Could not load projects:",
+            error
+        );
+
+        return [];
+
+    }
 }
 
+
 export function saveProjects(projects) {
-  localStorage.setItem("projects", JSON.stringify(projects));
+
+    localStorage.setItem(
+        PROJECTS_KEY,
+        JSON.stringify(projects)
+    );
+
 }
