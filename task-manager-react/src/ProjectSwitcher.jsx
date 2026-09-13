@@ -1,30 +1,20 @@
-function ProjectSwitcher({
-    projects,
-    activeProjectId,
-    onProjectChange
-}) {
-    return (
-        <div className="project-switcher">
-            {projects.length === 0 ? (
-                <p>No projects available.</p>
-            ) : (
-                projects.map((project) => (
-                    <button
-                        key={project.id}
-                        type="button"
-                        className={
-                            project.id === activeProjectId
-                                ? "project-button active"
-                                : "project-button"
-                        }
-                        onClick={() => onProjectChange(project.id)}
-                    >
-                        {project.name}
-                    </button>
-                ))
-            )}
-        </div>
-    );
+function ProjectSwitcher({ projects, activeProjectId, onSelectProject }) {
+  return (
+    <div style={{ display: "flex", gap: "10px", marginBottom: "20px" }}>
+      {projects.map((project) => (
+        <button
+          key={project.id}
+          onClick={() => onSelectProject(project.id)}
+          style={{
+            fontWeight: project.id === activeProjectId ? "bold" : "normal",
+            padding: "8px 16px",
+          }}
+        >
+          {project.name}
+        </button>
+      ))}
+    </div>
+  );
 }
 
 export default ProjectSwitcher;
