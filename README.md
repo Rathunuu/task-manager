@@ -6,7 +6,7 @@ To run it locally:
 
 ### Live Links
 - Original (vanilla JS) app: [https://rathunuu.github.io/task-manager/]
-- React version: [your React deployed link here, if available]
+- React version: [https://rathunuu.github.io/task-manager/task-manager-react/]
 
 ### Notes
 - The `storage.js` logic (loadTasks, saveTasks, loadProjects, saveProjects) was carried over unchanged — same localStorage data format.
