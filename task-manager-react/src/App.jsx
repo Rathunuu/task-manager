@@ -1,56 +1,42 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import ProjectSwitcher from "./ProjectSwitcher";
 import TaskList from "./TaskList";
 import { loadTasks, loadProjects } from "./storage";
 
-
 function App() {
-    const [tasks, setTasks] = useState([]);
-    const [projects, setProjects] = useState([]);
-    const [activeProjectId, setActiveProjectId] = useState("");
+  const [tasks, setTasks] = useState([]);
+  const [projects, setProjects] = useState([]);
+  const [activeProjectId, setActiveProjectId] = useState(null);
 
-    useEffect(() => {
-        const loadedTasks = loadTasks();
-        const loadedProjects = loadProjects();
+  useEffect(() => {
+    const loadedProjects = loadProjects();
+    const loadedTasks = loadTasks();
 
-        setTasks(loadedTasks);
-        setProjects(loadedProjects);
+    setProjects(loadedProjects);
+    setTasks(loadedTasks);
 
-        if (loadedProjects.length > 0) {
-            setActiveProjectId(loadedProjects[0].id);
-        }
-    }, []);
+    if (loadedProjects.length > 0) {
+      setActiveProjectId(loadedProjects[0].id);
+    }
+  }, []);
 
-    const handleProjectChange = (projectId) => {
-        setActiveProjectId(projectId);
-    };
+  const tasksForActiveProject = tasks.filter(
+    (task) => task.projectId === activeProjectId
+  );
 
-    const activeProjectTasks = tasks.filter(
-        (task) => task.projectId === activeProjectId
-    );
+  return (
+    <div style={{ padding: "30px", maxWidth: "800px", margin: "0 auto" }}>
+      <h1>Task Manager (React Version)</h1>
 
-    return (
-        <div className="app">
-            <h1>Task Manager React</h1>
+      <ProjectSwitcher
+        projects={projects}
+        activeProjectId={activeProjectId}
+        onSelectProject={setActiveProjectId}
+      />
 
-            <h2>Projects</h2>
-
-            <ProjectSwitcher
-                projects={projects}
-                activeProjectId={activeProjectId}
-                onProjectChange={handleProjectChange}
-            />
-
-            <h2>Tasks</h2>
-
-            <TaskList tasks={activeProjectTasks} />
-
-            <h2>React Map Exercise</h2>
-
-            <NameList />
-            <Counter />
-        </div>
-    );
+      <TaskList tasks={tasksForActiveProject} />
+    </div>
+  );
 }
 
 export default App;
