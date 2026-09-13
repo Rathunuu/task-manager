@@ -5,7 +5,7 @@ The React version of the task manager is in the `task-manager-react/` folder.
 To run it locally:
 
 ### Live Links
-- Original (vanilla JS) app: []
+- Original (vanilla JS) app: [https://rathunuu.github.io/task-manager/]
 - React version: [your React deployed link here, if available]
 
 ### Notes
