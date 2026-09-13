@@ -1,38 +1,15 @@
-const TASKS_KEY = "task-manager-tasks";
-const PROJECTS_KEY = "task-manager-projects";
-
 export function loadTasks() {
-    const storedTasks = localStorage.getItem(TASKS_KEY);
-
-    if (!storedTasks) return [];
-
-    try {
-        const tasks = JSON.parse(storedTasks);
-        return Array.isArray(tasks) ? tasks : [];
-    } catch (error) {
-        console.error("Could not load tasks:", error);
-        return [];
-    }
+  return JSON.parse(localStorage.getItem("tasks")) || [];
 }
 
 export function saveTasks(tasks) {
-    localStorage.setItem(TASKS_KEY, JSON.stringify(tasks));
+  localStorage.setItem("tasks", JSON.stringify(tasks));
 }
 
 export function loadProjects() {
-    const storedProjects = localStorage.getItem(PROJECTS_KEY);
-
-    if (!storedProjects) return [];
-
-    try {
-        const projects = JSON.parse(storedProjects);
-        return Array.isArray(projects) ? projects : [];
-    } catch (error) {
-        console.error("Could not load projects:", error);
-        return [];
-    }
+  return JSON.parse(localStorage.getItem("projects")) || [];
 }
 
 export function saveProjects(projects) {
-    localStorage.setItem(PROJECTS_KEY, JSON.stringify(projects));
+  localStorage.setItem("projects", JSON.stringify(projects));
 }
