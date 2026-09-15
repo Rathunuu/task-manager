@@ -1792,3 +1792,65 @@ if (closeProjectModalBtn) {
     );
 
 }
+/* =====================================================
+   CREATE NEW PROJECT
+===================================================== */
+
+if (projectForm) {
+
+    projectForm.addEventListener(
+        "submit",
+        event => {
+
+            event.preventDefault();
+
+            if (
+                !currentUser ||
+                isAdmin(currentUser)
+            ) {
+                return;
+            }
+
+            const name =
+                projectNameInput
+                    ? projectNameInput.value.trim()
+                    : "";
+
+            if (!name) {
+                return;
+            }
+
+            const newProject = {
+
+                id: crypto.randomUUID(),
+
+                name: name
+
+            };
+
+            projects.push(newProject);
+
+            saveProjects(projects);
+
+            activeProjectId =
+                newProject.id;
+
+            if (projectModal) {
+                projectModal.hidden = true;
+            }
+
+            if (projectNameInput) {
+                projectNameInput.value = "";
+            }
+
+            renderProjects(
+                projects,
+                activeProjectId
+            );
+
+            updateTaskDisplay();
+
+        }
+    );
+
+}
