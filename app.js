@@ -1962,3 +1962,122 @@ document.addEventListener(
 
     }
 );
+/* =====================================================
+   DELETE TASK
+===================================================== */
+
+let deletedTask = null;
+let deleteTimer = null;
+
+function deleteTask(taskId) {
+
+    const taskIndex =
+        tasks.findIndex(
+            task => task.id === taskId
+        );
+
+    if (taskIndex === -1) {
+        return;
+    }
+
+    deletedTask = {
+        task: tasks[taskIndex],
+        index: taskIndex
+    };
+
+    tasks.splice(
+        taskIndex,
+        1
+    );
+
+    saveTasks(tasks);
+
+    updateTaskDisplay();
+
+    /* SHOW UNDO */
+
+    if (undoToast) {
+        undoToast.hidden = false;
+    }
+
+    clearTimeout(deleteTimer);
+
+    deleteTimer =
+        setTimeout(
+            () => {
+
+                deletedTask = null;
+
+                if (undoToast) {
+                    undoToast.hidden = true;
+                }
+
+            },
+            5000
+        );
+
+}
+
+
+/* =====================================================
+   DELETE BUTTON EVENT
+===================================================== */
+
+document.addEventListener(
+    "click",
+    event => {
+
+        const deleteButton =
+            event.target.closest(
+                "[data-delete-task]"
+            );
+
+        if (!deleteButton) {
+            return;
+        }
+
+        const taskId =
+            deleteButton.dataset.deleteTask;
+
+        deleteTask(taskId);
+
+    }
+);
+
+
+/* =====================================================
+   UNDO DELETE
+===================================================== */
+
+if (undoDeleteBtn) {
+
+    undoDeleteBtn.addEventListener(
+        "click",
+        () => {
+
+            if (!deletedTask) {
+                return;
+            }
+
+            tasks.splice(
+                deletedTask.index,
+                0,
+                deletedTask.task
+            );
+
+            saveTasks(tasks);
+
+            deletedTask = null;
+
+            clearTimeout(deleteTimer);
+
+            if (undoToast) {
+                undoToast.hidden = true;
+            }
+
+            updateTaskDisplay();
+
+        }
+    );
+
+}
