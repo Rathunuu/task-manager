@@ -1235,3 +1235,640 @@ if (adminOpenTaskManagerBtn) {
         }
     );
 }
+/* =========================================================
+   PART 3 / 5
+   TASK ADD + FILTER + SEARCH + SORT + VIEW
+========================================================= */
+
+
+/* =========================================================
+   ADD TASK
+========================================================= */
+
+if (taskForm) {
+
+    taskForm.addEventListener(
+        "submit",
+        event => {
+
+            event.preventDefault();
+
+            if (!currentUser) return;
+
+            if (currentUser.role === "admin") return;
+
+
+            const text =
+                taskInput
+                    ? taskInput.value.trim()
+                    : "";
+
+
+            if (!text) return;
+
+
+            const category =
+                categorySelect
+                    ? categorySelect.value
+                    : "Work";
+
+
+            const newTask = {
+
+                id:
+                    crypto.randomUUID(),
+
+                text,
+
+                category,
+
+                status:
+                    "To Do",
+
+                priority:
+                    "Normal",
+
+                dueDate:
+                    "",
+
+                description:
+                    "",
+
+                notes:
+                    "",
+
+                subtasks:
+                    [],
+
+                projectId:
+                    activeProjectId,
+
+                createdAt:
+                    new Date().toISOString(),
+
+                updatedAt:
+                    new Date().toISOString()
+            };
+
+
+            tasks.unshift(
+                newTask
+            );
+
+
+            saveTasks(
+                currentUser.id,
+                tasks
+            );
+
+
+            if (taskForm) {
+                taskForm.reset();
+            }
+
+
+            updateUI();
+        }
+    );
+}
+
+
+/* =========================================================
+   SEARCH
+========================================================= */
+
+if (searchInput) {
+
+    searchInput.addEventListener(
+        "input",
+        () => {
+
+            searchTerm =
+                searchInput.value
+                    .trim()
+                    .toLowerCase();
+
+
+            updateUI();
+        }
+    );
+}
+
+
+/* =========================================================
+   CATEGORY FILTER
+========================================================= */
+
+if (filterButtons) {
+
+    filterButtons.forEach(
+        button => {
+
+            button.addEventListener(
+                "click",
+                () => {
+
+                    currentFilter =
+                        button.dataset.category ||
+                        button.textContent.trim();
+
+
+                    filterButtons.forEach(
+                        item => {
+
+                            item.classList.remove(
+                                "active"
+                            );
+                        }
+                    );
+
+
+                    button.classList.add(
+                        "active"
+                    );
+
+
+                    updateUI();
+                }
+            );
+        }
+    );
+}
+
+
+/* =========================================================
+   SORT
+========================================================= */
+
+if (sortSelect) {
+
+    sortSelect.addEventListener(
+        "change",
+        () => {
+
+            currentSort =
+                sortSelect.value;
+
+
+            updateUI();
+        }
+    );
+}
+
+
+/* =========================================================
+   LIST VIEW
+========================================================= */
+
+if (listViewBtn) {
+
+    listViewBtn.addEventListener(
+        "click",
+        () => {
+
+            currentView =
+                "list";
+
+
+            listViewBtn.classList.add(
+                "active"
+            );
+
+
+            if (boardViewBtn) {
+
+                boardViewBtn.classList.remove(
+                    "active"
+                );
+            }
+
+
+            updateUI();
+        }
+    );
+}
+
+
+/* =========================================================
+   BOARD VIEW
+========================================================= */
+
+if (boardViewBtn) {
+
+    boardViewBtn.addEventListener(
+        "click",
+        () => {
+
+            currentView =
+                "board";
+
+
+            boardViewBtn.classList.add(
+                "active"
+            );
+
+
+            if (listViewBtn) {
+
+                listViewBtn.classList.remove(
+                    "active"
+                );
+            }
+
+
+            updateUI();
+        }
+    );
+}
+
+
+/* =========================================================
+   TASK STATUS CHANGE
+========================================================= */
+
+document.addEventListener(
+    "change",
+    event => {
+
+        const statusElement =
+            event.target.closest(
+                "[data-task-status]"
+            );
+
+
+        if (!statusElement) return;
+
+        if (!currentUser) return;
+
+        if (currentUser.role === "admin")
+            return;
+
+
+        const taskId =
+            statusElement.dataset.taskStatus;
+
+
+        const task =
+            tasks.find(
+                item =>
+                    item.id === taskId
+            );
+
+
+        if (!task) return;
+
+
+        task.status =
+            statusElement.value;
+
+
+        task.updatedAt =
+            new Date().toISOString();
+
+
+        saveTasks(
+            currentUser.id,
+            tasks
+        );
+
+
+        updateUI();
+    }
+);
+
+
+/* =========================================================
+   UPDATE TASK
+========================================================= */
+
+function updateTask(
+    taskId,
+    updates
+) {
+
+    if (!currentUser) return;
+
+
+    const task =
+        tasks.find(
+            item =>
+                item.id === taskId
+        );
+
+
+    if (!task) return;
+
+
+    Object.assign(
+        task,
+        updates
+    );
+
+
+    task.updatedAt =
+        new Date().toISOString();
+
+
+    saveTasks(
+        currentUser.id,
+        tasks
+    );
+
+
+    updateUI();
+}
+
+
+/* =========================================================
+   DELETE TASK
+========================================================= */
+
+document.addEventListener(
+    "click",
+    event => {
+
+        const deleteButton =
+            event.target.closest(
+                "[data-delete-task]"
+            );
+
+
+        if (!deleteButton) return;
+
+
+        if (!currentUser) return;
+
+        if (currentUser.role === "admin")
+            return;
+
+
+        const taskId =
+            deleteButton.dataset.deleteTask;
+
+
+        const index =
+            tasks.findIndex(
+                task =>
+                    task.id === taskId
+            );
+
+
+        if (index === -1) return;
+
+
+        deletedTask =
+            tasks[index];
+
+
+        deletedTaskIndex =
+            index;
+
+
+        tasks.splice(
+            index,
+            1
+        );
+
+
+        saveTasks(
+            currentUser.id,
+            tasks
+        );
+
+
+        updateUI();
+
+
+        showUndoMessage();
+    }
+);
+
+
+/* =========================================================
+   UNDO MESSAGE
+========================================================= */
+
+function showUndoMessage() {
+
+    if (!undoBtn) return;
+
+
+    undoBtn.style.display =
+        "block";
+
+
+    clearTimeout(
+        undoTimeout
+    );
+
+
+    undoTimeout =
+        setTimeout(
+            () => {
+
+                deletedTask =
+                    null;
+
+                deletedTaskIndex =
+                    -1;
+
+
+                if (undoBtn) {
+
+                    undoBtn.style.display =
+                        "none";
+                }
+
+            },
+            5000
+        );
+}
+
+
+/* =========================================================
+   UNDO DELETE
+========================================================= */
+
+if (undoBtn) {
+
+    undoBtn.addEventListener(
+        "click",
+        () => {
+
+            if (!currentUser) return;
+
+            if (!deletedTask) return;
+
+
+            const index =
+                Math.min(
+                    deletedTaskIndex,
+                    tasks.length
+                );
+
+
+            tasks.splice(
+                index,
+                0,
+                deletedTask
+            );
+
+
+            saveTasks(
+                currentUser.id,
+                tasks
+            );
+
+
+            deletedTask =
+                null;
+
+
+            deletedTaskIndex =
+                -1;
+
+
+            clearTimeout(
+                undoTimeout
+            );
+
+
+            undoBtn.style.display =
+                "none";
+
+
+            updateUI();
+        }
+    );
+}
+
+
+/* =========================================================
+   TASK COUNT
+========================================================= */
+
+function updateTaskCount() {
+
+    if (!taskCount) return;
+
+
+    taskCount.textContent =
+        `${tasks.length} Tasks`;
+}
+
+
+/* =========================================================
+   PROJECT PROGRESS
+========================================================= */
+
+function updateProjectProgress() {
+
+    if (!projectProgress) return;
+
+
+    if (!activeProjectId) {
+
+        projectProgress.textContent =
+            "0 of 0 tasks done";
+
+        return;
+    }
+
+
+    const projectTasks =
+        tasks.filter(
+            task =>
+                task.projectId ===
+                activeProjectId
+        );
+
+
+    const completed =
+        projectTasks.filter(
+            task =>
+                task.status === "Done"
+        ).length;
+
+
+    projectProgress.textContent =
+        `${completed} of ${projectTasks.length} tasks done`;
+}
+
+
+/* =========================================================
+   UPDATE UI
+========================================================= */
+
+function updateUI() {
+
+    if (!currentUser) return;
+
+
+    if (currentUser.role === "admin") {
+
+        updateAdminDashboard();
+
+        renderAdminBoard();
+
+        return;
+    }
+
+
+    loadCurrentUserData();
+
+    ensureDefaultProject();
+
+
+    if (welcomeUser) {
+
+        welcomeUser.textContent =
+            `Welcome, ${currentUser.name}!`;
+    }
+
+
+    if (
+        typeof renderProjects ===
+        "function"
+    ) {
+
+        renderProjects(
+            projects,
+            activeProjectId
+        );
+    }
+
+
+    if (
+        typeof renderTasks ===
+        "function"
+    ) {
+
+        renderTasks(
+            tasks,
+            currentFilter,
+            searchTerm,
+            currentSort,
+            activeProjectId
+        );
+    }
+
+
+    if (
+        typeof renderBoard ===
+        "function"
+    ) {
+
+        renderBoard(
+            tasks,
+            currentFilter,
+            searchTerm,
+            currentSort,
+            activeProjectId
+        );
+    }
+
+
+    updateTaskCount();
+
+    updateProjectProgress();
+}
