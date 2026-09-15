@@ -11,6 +11,35 @@
 </head>
 
 <body>
+        <!-- =========================
+         LOGIN / REGISTER SCREEN
+    ========================== -->
+
+    <div id="authScreen" class="auth-screen">
+
+        <div class="auth-card">
+
+            <h1>Task Manager</h1>
+            <p>Login or create an account to continue.</p>
+
+            <div class="input-group">
+                <label for="authUsername">Username</label>
+                <input type="text" id="authUsername" autocomplete="off">
+            </div>
+
+            <div class="input-group">
+                <label for="authPassword">Password</label>
+                <input type="password" id="authPassword" autocomplete="off">
+            </div>
+
+            <p id="authError" class="auth-error" hidden></p>
+
+            <div class="auth-actions">
+                <button id="loginBtn" class="primary-btn" type="button">Login</button>
+                <button id="registerBtn" class="secondary-btn" type="button">Register</button>
+            </div>
+
+        </div>
 
     <div class="app-container">
 
