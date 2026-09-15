@@ -870,3 +870,4 @@ function escapeHTML(text) {
     return div.innerHTML;
 
 }
+
