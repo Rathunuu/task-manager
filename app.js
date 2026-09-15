@@ -2577,3 +2577,95 @@ if (importInput) {
     );
 
 }
+/* =====================================================
+   RENDER PROJECTS
+===================================================== */
+
+function updateProjectsUI() {
+
+    if (!currentUser || isAdmin(currentUser)) {
+        return;
+    }
+
+    renderProjects(
+        projects,
+        activeProjectId
+    );
+
+    if (projectSelect) {
+
+        projectSelect.innerHTML = "";
+
+        projects.forEach(
+            project => {
+
+                const option =
+                    document.createElement("option");
+
+                option.value =
+                    project.id;
+
+                option.textContent =
+                    project.name;
+
+                projectSelect.appendChild(
+                    option
+                );
+
+            }
+        );
+
+        if (activeProjectId) {
+            projectSelect.value =
+                activeProjectId;
+        }
+
+    }
+
+}
+
+
+/* =====================================================
+   PROJECT CLICK
+===================================================== */
+
+document.addEventListener(
+    "click",
+    event => {
+
+        const projectButton =
+            event.target.closest(
+                "[data-project-id]"
+            );
+
+        if (!projectButton) {
+            return;
+        }
+
+        const projectId =
+            projectButton.dataset.projectId;
+
+        const projectExists =
+            projects.some(
+                project =>
+                    project.id === projectId
+            );
+
+        if (!projectExists) {
+            return;
+        }
+
+        activeProjectId =
+            projectId;
+
+        if (projectSelect) {
+            projectSelect.value =
+                projectId;
+        }
+
+        updateProjectsUI();
+
+        updateTaskDisplay();
+
+    }
+);
