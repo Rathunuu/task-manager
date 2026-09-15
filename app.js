@@ -453,6 +453,32 @@ if (loginForm) {
 
 }
 /* =========================
+   LOGOUT
+========================= */
+
+if (logoutBtn) {
+
+    logoutBtn.addEventListener(
+        "click",
+        () => {
+
+            clearCurrentUser();
+
+            currentUser = null;
+
+            tasks = [];
+            projects = [];
+
+            activeProjectId = null;
+            activeDetailTaskId = null;
+
+            showAuth();
+
+        }
+    );
+
+}
+/* =========================
    INITIAL DATA
 ========================= */
 
