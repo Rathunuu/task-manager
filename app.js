@@ -2194,3 +2194,96 @@ if (closeTaskDetailBtn) {
     );
 
 }
+/* =====================================================
+   SAVE TASK DETAILS
+===================================================== */
+
+function saveTaskDetails() {
+
+    if (!activeDetailTaskId) {
+        return;
+    }
+
+    const task =
+        tasks.find(
+            item =>
+                item.id === activeDetailTaskId
+        );
+
+    if (!task) {
+        return;
+    }
+
+    if (taskDetailTitle) {
+        task.text =
+            taskDetailTitle.value.trim();
+    }
+
+    if (taskDetailDescription) {
+        task.description =
+            taskDetailDescription.value.trim();
+    }
+
+    if (taskDetailCategory) {
+        task.category =
+            taskDetailCategory.value;
+    }
+
+    if (taskDetailPriority) {
+        task.priority =
+            taskDetailPriority.value;
+    }
+
+    if (taskDetailStatus) {
+        task.status =
+            taskDetailStatus.value;
+    }
+
+    if (taskDetailDueDate) {
+        task.dueDate =
+            taskDetailDueDate.value;
+    }
+
+    if (taskDetailNotes) {
+        task.notes =
+            taskDetailNotes.value.trim();
+    }
+
+    task.updatedAt =
+        new Date().toISOString();
+
+    saveTasks(tasks);
+
+    updateTaskDisplay();
+
+}
+
+
+/* =====================================================
+   SAVE BUTTON EVENT
+===================================================== */
+
+document.addEventListener(
+    "click",
+    event => {
+
+        const saveButton =
+            event.target.closest(
+                "[data-save-task]"
+            );
+
+        if (!saveButton) {
+            return;
+        }
+
+        saveTaskDetails();
+
+        if (taskDetailModal) {
+            taskDetailModal.hidden = true;
+        }
+
+        activeDetailTaskId =
+            null;
+
+    }
+);
