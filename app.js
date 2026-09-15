@@ -3376,6 +3376,7 @@ function startApplication() {
 ========================================================= */
 
 console.log("STARTING APP", getCurrentUser());
+
 startApplication();
 
 
