@@ -1,1823 +1,1050 @@
-/* =========================
-   RESET
-========================= */
+import {
+    loadTasks,
+    saveTasks,
+    loadProjects,
+    saveProjects,
+    loginUser,
+    registerUser,
+    logoutUser,
+    getCurrentUser
+} from "./storage.js";
 
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-
-/* =========================
-   BODY
-========================= */
-
-body {
-    font-family:
-        Inter,
-        -apple-system,
-        BlinkMacSystemFont,
-        "Segoe UI",
-        sans-serif;
-
-    background: #f5f8fc;
-    color: #172033;
-
-    min-height: 100vh;
-}
+import {
+    renderTasks,
+    renderProjects,
+    renderBoard,
+    renderTaskDetail,
+    renderSubtasks,
+    renderProgress
+} from "./render.js";
 
 
 /* =========================
-   MAIN CONTAINER
+   AUTH ELEMENTS
 ========================= */
 
-.app-container {
-    width: min(1150px, 92%);
-    margin: 0 auto;
-    padding: 45px 0 60px;
-}
+const authScreen = document.getElementById("authScreen");
+const appContainer = document.getElementById("appContainer");
+const authUsername = document.getElementById("authUsername");
+const authPassword = document.getElementById("authPassword");
+const authError = document.getElementById("authError");
+const loginBtn = document.getElementById("loginBtn");
+const registerBtn = document.getElementById("registerBtn");
+const logoutBtn = document.getElementById("logoutBtn");
+const currentUserLabel = document.getElementById("currentUserLabel");
 
 
 /* =========================
-   HEADER
+   STATE
 ========================= */
 
-.app-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
+let currentUsername = null;
+let tasks = [];
+let projects = [];
 
-    margin-bottom: 28px;
-}
-
-.eyebrow {
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 2px;
-    color: #3b82f6;
-}
-
-.app-header h1 {
-    margin-top: 8px;
-
-    font-size: clamp(32px, 5vw, 48px);
-    line-height: 1.05;
-
-    letter-spacing: -1.5px;
-}
-
-.app-header p {
-    margin-top: 10px;
-
-    color: #718096;
-    font-size: 15px;
-}
+let activeProjectId = null;
+let activeCategory = "All";
+let searchText = "";
+let currentView = "list";
+let draggedTaskId = null;
+let activeDetailTaskId = null;
 
 
 /* =========================
-   TASK COUNT
+   DOM ELEMENTS
 ========================= */
 
-.task-count {
-    min-width: 85px;
-
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-
-    padding: 14px 18px;
-
-    background: white;
-
-    border: 1px solid #e5eaf1;
-    border-radius: 14px;
-
-    box-shadow: 0 8px 25px rgba(25, 55, 90, 0.05);
-}
-
-.task-count span {
-    font-size: 25px;
-    font-weight: 700;
-    color: #2563eb;
-}
-
-.task-count small {
-    margin-top: 2px;
-
-    font-size: 11px;
-    color: #8491a5;
-
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
+const taskInput = document.getElementById("taskInput");
+const categorySelect = document.getElementById("categorySelect");
+const statusSelect = document.getElementById("statusSelect");
+const addTaskBtn = document.getElementById("addTaskBtn");
+const searchInput = document.getElementById("searchInput");
+const sortSelect = document.getElementById("sortSelect");
+const filterButtons = document.querySelectorAll("#categoryFilters button");
+const taskList = document.getElementById("taskList");
+const exportBtn = document.getElementById("exportBtn");
+const importInput = document.getElementById("importInput");
+const undoToast = document.getElementById("undoToast");
+const undoBtn = document.getElementById("undoBtn");
 
 
 /* =========================
-   PROJECT CARD
+   PROJECT ELEMENTS
 ========================= */
 
-.projects-card {
-    background: white;
-
-    border: 1px solid #e3e9f1;
-    border-radius: 18px;
-
-    padding: 20px 22px;
-
-    margin-bottom: 18px;
-
-    box-shadow: 0 10px 30px rgba(30, 60, 100, 0.05);
-}
-
-.projects-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-
-    gap: 15px;
-
-    margin-bottom: 15px;
-}
-
-.projects-header h2 {
-    font-size: 16px;
-    letter-spacing: -0.2px;
-}
-
-.project-switcher {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-}
-
-.project-item {
-    border: 1px solid #dce3ec;
-
-    background: #f8fafc;
-
-    color: #536176;
-
-    padding: 9px 14px;
-
-    border-radius: 9px;
-
-    font-size: 13px;
-    font-weight: 600;
-
-    cursor: pointer;
-
-    transition:
-        background 0.2s ease,
-        color 0.2s ease,
-        border-color 0.2s ease,
-        transform 0.2s ease;
-}
-
-.project-item:hover {
-    background: #f1f6ff;
-    border-color: #bfd3f4;
-    color: #2563eb;
-
-    transform: translateY(-1px);
-}
-
-.project-item.active {
-    background: #2563eb;
-    border-color: #2563eb;
-
-    color: white;
-
-    box-shadow: 0 5px 14px rgba(37, 99, 235, 0.18);
-}
+const projectSwitcher = document.getElementById("projectSwitcher");
+const newProjectBtn = document.getElementById("newProjectBtn");
+const newProjectDialog = document.getElementById("newProjectDialog");
+const projectNameInput = document.getElementById("projectNameInput");
+const createProjectBtn = document.getElementById("createProjectBtn");
+const cancelProjectBtn = document.getElementById("cancelProjectBtn");
+const closeProjectDialogBtn = document.getElementById("closeProjectDialogBtn");
 
 
 /* =========================
-   PROJECT PROGRESS
+   VIEW ELEMENTS
 ========================= */
 
-.project-progress {
-    margin-top: 17px;
-    padding-top: 16px;
+const listViewBtn = document.getElementById("listViewBtn");
+const boardViewBtn = document.getElementById("boardViewBtn");
+const listView = document.getElementById("listView");
+const boardView = document.getElementById("boardView");
 
-    border-top: 1px solid #edf0f5;
+
+/* =========================
+   DETAIL ELEMENTS
+========================= */
+
+const taskDetailDialog = document.getElementById("taskDetailDialog");
+const detailTaskTitle = document.getElementById("detailTaskTitle");
+const closeDetailBtn = document.getElementById("closeDetailBtn");
+const detailDescription = document.getElementById("detailDescription");
+let detailStatus = document.getElementById("detailStatus");
+let detailPriority = document.getElementById("detailPriority");
+const detailDueDate = document.getElementById("detailDueDate");
+let detailCategory = document.getElementById("detailCategory");
+const taskNotes = document.getElementById("taskNotes");
+const saveNotesBtn = document.getElementById("saveNotesBtn");
+const subtaskInput = document.getElementById("subtaskInput");
+const addSubtaskBtn = document.getElementById("addSubtaskBtn");
+const subtaskList = document.getElementById("subtaskList");
+
+
+/* =========================
+   MAKE DETAIL CONTROLS CLICKABLE
+========================= */
+
+function ensureSelect(element, options, defaultValue) {
+    if (!element) return null;
+
+    if (element.tagName.toLowerCase() === "select") {
+        return element;
+    }
+
+    const select = document.createElement("select");
+    select.id = element.id;
+    select.className = element.className;
+
+    options.forEach(optionValue => {
+        const option = document.createElement("option");
+        option.value = optionValue;
+        option.textContent = optionValue;
+        select.appendChild(option);
+    });
+
+    select.value = defaultValue;
+    element.replaceWith(select);
+
+    return select;
 }
 
-.progress-info {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+detailStatus = ensureSelect(detailStatus, ["To Do", "In Progress", "In Review", "Done"], "To Do");
+detailPriority = ensureSelect(detailPriority, ["Low", "Normal", "High"], "Normal");
+detailCategory = ensureSelect(detailCategory, ["Work", "Personal", "Urgent"], "Work");
 
-    gap: 15px;
 
-    margin-bottom: 9px;
+/* =========================
+   AUTH LOGIC
+========================= */
+
+function showAuthScreen() {
+    authScreen.hidden = false;
+    appContainer.hidden = true;
 }
 
-#activeProjectName {
-    font-size: 13px;
-    font-weight: 700;
-    color: #344054;
+function showApp() {
+    authScreen.hidden = true;
+    appContainer.hidden = false;
 }
 
-#progressText {
-    font-size: 12px;
-    color: #7b8798;
+function initAppForUser(username) {
+    currentUsername = username;
+    currentUserLabel.textContent = username;
+
+    tasks = loadTasks(username);
+    projects = loadProjects(username);
+
+    if (projects.length === 0) {
+        const defaultProject = { id: crypto.randomUUID(), name: "My Project" };
+        projects.push(defaultProject);
+        saveProjects(username, projects);
+    }
+
+    activeProjectId = projects[0].id;
+    activeCategory = "All";
+    searchText = "";
+    currentView = "list";
+    searchInput.value = "";
+
+    showApp();
+    updateUI();
 }
 
-.progress-bar {
-    width: 100%;
-    height: 8px;
+loginBtn.addEventListener("click", () => {
+    const username = authUsername.value.trim();
+    const password = authPassword.value;
 
-    overflow: hidden;
+    if (!username || !password) {
+        authError.textContent = "Enter username and password.";
+        authError.hidden = false;
+        return;
+    }
 
-    background: #edf1f6;
+    const result = loginUser(username, password);
+    if (!result.success) {
+        authError.textContent = result.message;
+        authError.hidden = false;
+        return;
+    }
 
-    border-radius: 999px;
-}
+    authError.hidden = true;
+    initAppForUser(username);
+});
 
-.progress-fill {
-    width: 0;
-    height: 100%;
+registerBtn.addEventListener("click", () => {
+    const username = authUsername.value.trim();
+    const password = authPassword.value;
 
-    background: #2563eb;
+    if (!username || !password) {
+        authError.textContent = "Enter username and password.";
+        authError.hidden = false;
+        return;
+    }
 
-    border-radius: inherit;
+    const result = registerUser(username, password);
+    if (!result.success) {
+        authError.textContent = result.message;
+        authError.hidden = false;
+        return;
+    }
 
-    transition: width 0.4s ease;
+    authError.hidden = true;
+    loginUser(username, password);
+    initAppForUser(username);
+});
+
+logoutBtn.addEventListener("click", () => {
+    logoutUser();
+    currentUsername = null;
+    authUsername.value = "";
+    authPassword.value = "";
+    showAuthScreen();
+});
+
+
+/* =========================
+   CHECK EXISTING SESSION
+========================= */
+
+const existingUser = getCurrentUser();
+if (existingUser) {
+    initAppForUser(existingUser);
+} else {
+    showAuthScreen();
 }
 
 
 /* =========================
-   ADD TASK CARD
+   ADD TASK
 ========================= */
 
-.add-task-card {
-    display: grid;
+function addTask(text, category, status) {
 
-    grid-template-columns:
-        minmax(220px, 1fr)
-        150px
-        150px
-        150px
-        auto;
+    const newTask = {
+        id: crypto.randomUUID(),
+        projectId: activeProjectId,
+        text: text,
+        category: category,
+        status: status,
+        done: status === "Done",
+        description: "",
+        dueDate: "",
+        priority: "Normal",
+        notes: "",
+        subtasks: [],
+        createdAt: Date.now()
+    };
 
-    gap: 12px;
+    tasks.push(newTask);
+    saveTasks(currentUsername, tasks);
+    updateUI();
 
-    align-items: end;
-
-    padding: 22px;
-
-    background: white;
-
-    border: 1px solid #e3e9f1;
-    border-radius: 18px;
-
-    box-shadow: 0 12px 35px rgba(30, 60, 100, 0.06);
-
-    margin-bottom: 18px;
+    taskInput.value = "";
+    taskInput.focus();
 }
 
 
 /* =========================
-   INPUT GROUP
+   ADD TASK BUTTON
 ========================= */
 
-.input-group {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
+addTaskBtn.addEventListener("click", () => {
+    const text = taskInput.value.trim();
+    const category = categorySelect.value;
+    const status = statusSelect.value;
 
-.input-group label,
-.sort-box label {
-    font-size: 12px;
-    font-weight: 600;
-    color: #667085;
-}
+    if (text === "") {
+        taskInput.focus();
+        return;
+    }
+
+    addTask(text, category, status);
+});
 
 
 /* =========================
-   INPUTS
+   ENTER KEY - ADD TASK
 ========================= */
 
-input,
-select,
-textarea {
-    width: 100%;
-
-    border: 1px solid #dce3ec;
-    border-radius: 10px;
-
-    background: #fbfcfe;
-
-    color: #172033;
-
-    font-size: 14px;
-
-    outline: none;
-
-    transition:
-        border-color 0.2s ease,
-        box-shadow 0.2s ease,
-        background 0.2s ease;
-}
-
-input,
-select {
-    height: 46px;
-    padding: 0 14px;
-}
-
-textarea {
-    padding: 12px 14px;
-    resize: vertical;
-}
-
-input:focus,
-select:focus,
-textarea:focus {
-    border-color: #4f8df7;
-
-    background: white;
-
-    box-shadow:
-        0 0 0 4px rgba(59, 130, 246, 0.09);
-}
+taskInput.addEventListener("keydown", event => {
+    if (event.key === "Enter") {
+        event.preventDefault();
+        addTaskBtn.click();
+    }
+});
 
 
 /* =========================
-   BUTTONS
+   PROJECT SWITCHING
 ========================= */
 
-button {
-    font-family: inherit;
-}
-
-.primary-btn {
-    height: 46px;
-
-    padding: 0 20px;
-
-    border: none;
-    border-radius: 10px;
-
-    background: #2563eb;
-    color: white;
-
-    font-size: 14px;
-    font-weight: 600;
-
-    cursor: pointer;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    gap: 7px;
-
-    transition:
-        transform 0.2s ease,
-        background 0.2s ease,
-        box-shadow 0.2s ease;
-}
-
-.primary-btn:hover {
-    background: #1d4ed8;
-
-    transform: translateY(-1px);
-
-    box-shadow: 0 8px 20px rgba(37, 99, 235, 0.2);
-}
-
-.primary-btn:active {
-    transform: translateY(0);
-}
-
-.primary-btn span {
-    font-size: 20px;
-    line-height: 1;
-}
-
-
-/* =========================
-   CONTROLS CARD
-========================= */
-
-.controls-card {
-    display: grid;
-
-    grid-template-columns:
-        minmax(220px, 1fr)
-        auto
-        auto;
-
-    align-items: center;
-
-    gap: 20px;
-
-    padding: 18px 22px;
-
-    background: white;
-
-    border: 1px solid #e3e9f1;
-    border-radius: 18px;
-
-    margin-bottom: 28px;
-}
-
-
-/* =========================
-   SEARCH
-========================= */
-
-.search-box {
-    position: relative;
-}
-
-.search-box input {
-    padding-left: 40px;
-}
-
-.search-icon {
-    position: absolute;
-
-    left: 14px;
-    top: 50%;
-
-    transform: translateY(-50%);
-
-    color: #8a96a8;
-
-    font-size: 22px;
-
-    pointer-events: none;
-}
-
-
-/* =========================
-   FILTERS
-========================= */
-
-.filter-row {
-    display: flex;
-    gap: 5px;
-
-    padding: 4px;
-
-    background: #f3f6fa;
-
-    border-radius: 10px;
-}
-
-.filter-btn {
-    border: none;
-
-    padding: 8px 13px;
-
-    border-radius: 7px;
-
-    background: transparent;
-
-    color: #687588;
-
-    font-size: 13px;
-    font-weight: 600;
-
-    cursor: pointer;
-
-    transition: 0.2s ease;
-}
-
-.filter-btn:hover {
-    color: #2563eb;
-}
-
-.filter-btn.active {
-    background: white;
-
-    color: #2563eb;
-
-    box-shadow:
-        0 2px 8px rgba(30, 60, 100, 0.08);
-}
-
-
-/* =========================
-   SORT
-========================= */
-
-.sort-box {
-    display: flex;
-    align-items: center;
-    gap: 9px;
-}
-
-.sort-box select {
-    width: auto;
-    min-width: 115px;
-
-    height: 40px;
-}
-
-
-/* =========================
-   VIEW TOGGLE
-========================= */
-
-.view-toggle {
-    display: flex;
-
-    gap: 4px;
-
-    padding: 4px;
-
-    background: #f3f6fa;
-
-    border-radius: 10px;
-}
-
-.view-toggle button {
-    border: none;
-
-    background: transparent;
-
-    color: #687588;
-
-    padding: 8px 12px;
-
-    border-radius: 7px;
-
-    font-size: 12px;
-    font-weight: 600;
-
-    cursor: pointer;
-
-    transition: 0.2s ease;
-}
-
-.view-toggle button:hover {
-    color: #2563eb;
-}
-
-.view-toggle button.active {
-    background: white;
-
-    color: #2563eb;
-
-    box-shadow:
-        0 2px 8px rgba(30, 60, 100, 0.08);
-}
-
-
-/* =========================
-   TASK SECTION
-========================= */
-
-.task-section {
-    margin-bottom: 24px;
-}
-
-.section-heading {
-    display: flex;
-    justify-content: space-between;
-
-    margin-bottom: 14px;
-}
-
-.section-heading h2 {
-    font-size: 20px;
-    letter-spacing: -0.3px;
-}
-
-.section-heading p {
-    margin-top: 5px;
-
-    font-size: 13px;
-    color: #8491a5;
-}
-
-
-/* =========================
-   TASK LIST
-========================= */
-
-#taskList {
-    list-style: none;
-
-    display: flex;
-    flex-direction: column;
-
-    gap: 10px;
-}
-
-
-/* =========================
-   TASK ITEM
-========================= */
-
-.task-item {
-    display: flex;
-    align-items: center;
-
-    gap: 15px;
-
-    padding: 17px 18px;
-
-    background: white;
-
-    border: 1px solid #e3e9f1;
-    border-radius: 14px;
-
-    cursor: grab;
-
-    transition:
-        transform 0.2s ease,
-        box-shadow 0.2s ease,
-        border-color 0.2s ease,
-        opacity 0.2s ease;
-
-    animation:
-        taskAppear 0.35s ease both;
-}
-
-.task-item:hover {
-    transform: translateY(-2px);
-
-    border-color: #cdd8e7;
-
-    box-shadow:
-        0 10px 25px rgba(30, 60, 100, 0.07);
-}
-
-.task-item:active {
-    cursor: grabbing;
-}
-
-.task-item.dragging {
-    opacity: 0.45;
-
-    transform: scale(0.98);
-}
-
-
-/* =========================
-   DRAG HANDLE
-========================= */
-
-.drag-handle {
-    color: #a0acbb;
-
-    font-size: 18px;
-
-    user-select: none;
-
-    cursor: grab;
-}
-
-
-/* =========================
-   TASK CONTENT
-========================= */
-
-.task-content {
-    flex: 1;
-
-    min-width: 0;
-}
-
-.task-title {
-    display: block;
-
-    font-size: 15px;
-    font-weight: 600;
-
-    color: #202b3c;
-
-    overflow-wrap: anywhere;
-}
-
-.task-meta {
-    display: flex;
-    align-items: center;
-
-    gap: 8px;
-
-    margin-top: 7px;
-}
-
-
-/* =========================
-   CATEGORY BADGES
-========================= */
-
-.category-badge {
-    display: inline-flex;
-    align-items: center;
-
-    padding: 4px 9px;
-
-    border-radius: 20px;
-
-    font-size: 11px;
-    font-weight: 700;
-}
-
-.category-work {
-    background: #edf4ff;
-    color: #2563eb;
-}
-
-.category-personal {
-    background: #f1f3f7;
-    color: #596579;
-}
-
-.category-urgent {
-    background: #fff1f1;
-    color: #dc3f3f;
-}
-
-
-/* =========================
-   STATUS BADGE
-========================= */
-
-.status-badge {
-    display: inline-flex;
-    align-items: center;
-
-    padding: 4px 9px;
-
-    border-radius: 20px;
-
-    background: #f2f4f7;
-
-    color: #667085;
-
-    font-size: 11px;
-    font-weight: 700;
-}
-
-
-/* =========================
-   DELETE BUTTON
-========================= */
-
-.delete-btn {
-    flex-shrink: 0;
-
-    border: none;
-
-    background: transparent;
-
-    color: #9aa5b5;
-
-    font-size: 13px;
-    font-weight: 600;
-
-    cursor: pointer;
-
-    padding: 8px;
-
-    border-radius: 7px;
-
-    transition: 0.2s ease;
-}
-
-.delete-btn:hover {
-    background: #fff2f2;
-
-    color: #dc3f3f;
-}
-
-
-/* =========================
-   EMPTY STATE
-========================= */
-
-.empty-state {
-    text-align: center;
-
-    padding: 55px 20px;
-
-    background: white;
-
-    border: 1px dashed #d7e0eb;
-
-    border-radius: 16px;
-}
-
-.empty-icon {
-    width: 48px;
-    height: 48px;
-
-    margin: 0 auto 15px;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    border-radius: 50%;
-
-    background: #edf4ff;
-    color: #2563eb;
-
-    font-size: 22px;
-    font-weight: 700;
-}
-
-.empty-state h3 {
-    font-size: 16px;
-}
-
-.empty-state p {
-    margin-top: 6px;
-
-    color: #8491a5;
-
-    font-size: 13px;
-}
-
-
-/* =========================
-   KANBAN BOARD
-========================= */
-
-.board-view {
-    width: 100%;
-}
-
-.kanban-board {
-    display: grid;
-
-    grid-template-columns:
-        repeat(4, minmax(0, 1fr));
-
-    gap: 14px;
-
-    align-items: start;
-}
-
-.kanban-column {
-    min-height: 330px;
-
-    background: #eef2f7;
-
-    border: 1px solid #e1e7ef;
-
-    border-radius: 15px;
-
-    padding: 12px;
-
-    transition:
-        background 0.2s ease,
-        border-color 0.2s ease;
-}
-
-.kanban-column.drag-over {
-    background: #e9f1ff;
-
-    border-color: #8db5f3;
-}
-
-
-/* =========================
-   KANBAN HEADER
-========================= */
-
-.kanban-column-header {
-    display: flex;
-
-    align-items: center;
-    justify-content: space-between;
-
-    gap: 10px;
-
-    padding: 5px 3px 12px;
-}
-
-.kanban-column-header h3 {
-    font-size: 13px;
-    font-weight: 700;
-
-    color: #344054;
-}
-
-.kanban-count {
-    min-width: 24px;
-    height: 24px;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    padding: 0 7px;
-
-    border-radius: 7px;
-
-    background: white;
-
-    color: #667085;
-
-    font-size: 11px;
-    font-weight: 700;
-
-    border: 1px solid #e0e6ee;
-}
-
-
-/* =========================
-   KANBAN TASK CONTAINER
-========================= */
-
-.kanban-tasks {
-    display: flex;
-
-    flex-direction: column;
-
-    gap: 9px;
-
-    min-height: 275px;
-}
-
-
-/* =========================
-   KANBAN TASK
-========================= */
-
-.kanban-task {
-    background: white;
-
-    border: 1px solid #e0e6ee;
-
-    border-radius: 12px;
-
-    padding: 14px;
-
-    cursor: grab;
-
-    box-shadow:
-        0 4px 12px rgba(30, 60, 100, 0.05);
-
-    transition:
-        transform 0.2s ease,
-        box-shadow 0.2s ease,
-        opacity 0.2s ease,
-        border-color 0.2s ease;
-
-    animation:
-        taskAppear 0.3s ease both;
-}
-
-.kanban-task:hover {
-    transform: translateY(-2px);
-
-    border-color: #c8d5e5;
-
-    box-shadow:
-        0 9px 20px rgba(30, 60, 100, 0.08);
-}
-
-.kanban-task:active {
-    cursor: grabbing;
-}
-
-.kanban-task.dragging {
-    opacity: 0.45;
-
-    transform: scale(0.97);
-}
-
-.kanban-task-content {
-    min-width: 0;
-}
-
-
-/* =========================
-   DATA CARD
-========================= */
-
-.data-card {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-
-    gap: 20px;
-
-    padding: 20px 22px;
-
-    background: #eef5ff;
-
-    border: 1px solid #d9e8ff;
-
-    border-radius: 16px;
-}
-
-.data-card h3 {
-    font-size: 15px;
-}
-
-.data-card p {
-    margin-top: 4px;
-
-    font-size: 12px;
-    color: #70809a;
-}
-
-.data-actions {
-    display: flex;
-    gap: 8px;
-}
-
-
-/* =========================
-   SECONDARY BUTTON
-========================= */
-
-.secondary-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-
-    height: 40px;
-
-    padding: 0 14px;
-
-    background: white;
-
-    border: 1px solid #d2deed;
-
-    border-radius: 9px;
-
-    color: #31557f;
-
-    font-size: 12px;
-    font-weight: 600;
-
-    cursor: pointer;
-
-    transition: 0.2s ease;
-}
-
-.secondary-btn:hover {
-    border-color: #9dbbe2;
-
-    background: #f8fbff;
-}
-
-
-/* =========================
-   DIALOG BACKDROP
-========================= */
-
-dialog::backdrop {
-    background: rgba(15, 23, 42, 0.48);
-
-    backdrop-filter: blur(4px);
-}
-
-
-/* =========================
-   TASK DETAIL DIALOG
-========================= */
-
-#taskDetailDialog,
-#newProjectDialog {
-    width: min(650px, 92%);
-
-    border: none;
-
-    border-radius: 18px;
-
-    padding: 0;
-
-    background: white;
-
-    color: #172033;
-
-    box-shadow:
-        0 25px 70px rgba(15, 23, 42, 0.22);
-
-    animation:
-        dialogIn 0.25s ease;
-}
-
-#taskDetailDialog {
-    max-height: 90vh;
-
-    overflow-y: auto;
-}
-
-
-/* =========================
-   DIALOG HEADER
-========================= */
-
-.dialog-header {
-    display: flex;
-
-    align-items: flex-start;
-    justify-content: space-between;
-
-    gap: 20px;
-
-    padding: 22px 24px;
-
-    border-bottom: 1px solid #edf0f5;
-}
-
-.dialog-header h2 {
-    font-size: 20px;
-
-    line-height: 1.3;
-
-    overflow-wrap: anywhere;
-}
-
-.close-btn {
-    width: 34px;
-    height: 34px;
-
-    flex-shrink: 0;
-
-    border: none;
-
-    border-radius: 8px;
-
-    background: #f3f5f8;
-
-    color: #667085;
-
-    font-size: 20px;
-
-    cursor: pointer;
-
-    transition: 0.2s ease;
-}
-
-.close-btn:hover {
-    background: #e9edf3;
-
-    color: #172033;
-}
-
-
-/* =========================
-   DETAIL BODY
-========================= */
-
-.detail-body {
-    padding: 22px 24px;
-}
-
-.detail-description {
-    padding: 14px;
-
-    margin-bottom: 20px;
-
-    background: #f8fafc;
-
-    border: 1px solid #e9edf3;
-
-    border-radius: 11px;
-
-    color: #667085;
-
-    font-size: 13px;
-
-    line-height: 1.6;
-}
-
-
-/* =========================
-   DETAIL GRID
-========================= */
-
-.detail-grid {
-    display: grid;
-
-    grid-template-columns:
-        repeat(2, minmax(0, 1fr));
-
-    gap: 14px;
-
-    margin-bottom: 22px;
-}
-
-.detail-field {
-    display: flex;
-
-    flex-direction: column;
-
-    gap: 7px;
-}
-
-.detail-field label {
-    font-size: 11px;
-
-    font-weight: 700;
-
-    color: #667085;
-
-    text-transform: uppercase;
-
-    letter-spacing: 0.5px;
-}
-
-.detail-field span {
-    min-height: 40px;
-
-    display: flex;
-
-    align-items: center;
-
-    padding: 0 12px;
-
-    background: #f8fafc;
-
-    border: 1px solid #e5eaf1;
-
-    border-radius: 9px;
-
-    color: #344054;
-
-    font-size: 13px;
-}
-
-
-/* =========================
-   NOTES
-========================= */
-
-.detail-section {
-    margin-top: 22px;
-}
-
-.detail-section-header {
-    display: flex;
-
-    justify-content: space-between;
-    align-items: center;
-
-    margin-bottom: 10px;
-}
-
-.detail-section-header h3 {
-    font-size: 14px;
-}
-
-#taskNotes {
-    min-height: 110px;
-}
-
-
-/* =========================
-   SUBTASKS
-========================= */
-
-.subtask-add {
-    display: flex;
-
-    gap: 8px;
-
-    margin-bottom: 12px;
-}
-
-.subtask-add input {
-    flex: 1;
-}
-
-.subtask-add button {
-    flex-shrink: 0;
-}
-
-#subtaskList {
-    display: flex;
-
-    flex-direction: column;
-
-    gap: 8px;
-}
-
-.subtask-item {
-    display: flex;
-
-    align-items: center;
-
-    gap: 10px;
-
-    padding: 10px 12px;
-
-    background: #f8fafc;
-
-    border: 1px solid #e5eaf1;
-
-    border-radius: 9px;
-}
-
-.subtask-checkbox {
-    width: 17px;
-    height: 17px;
-
-    flex-shrink: 0;
-
-    cursor: pointer;
-
-    accent-color: #2563eb;
-}
-
-.subtask-item label {
-    flex: 1;
-
-    min-width: 0;
-
-    color: #344054;
-
-    font-size: 13px;
-
-    overflow-wrap: anywhere;
-}
-
-.subtask-item label.completed {
-    color: #98a2b3;
-
-    text-decoration: line-through;
-}
-
-.subtask-delete {
-    border: none;
-
-    background: transparent;
-
-    color: #98a2b3;
-
-    padding: 5px 7px;
-
-    border-radius: 6px;
-
-    font-size: 11px;
-
-    font-weight: 600;
-
-    cursor: pointer;
-}
-
-.subtask-delete:hover {
-    background: #fff1f1;
-
-    color: #dc3f3f;
-}
-
-.subtask-empty {
-    padding: 14px;
-
-    text-align: center;
-
-    color: #98a2b3;
-
-    font-size: 12px;
-
-    border: 1px dashed #dce3ec;
-
-    border-radius: 9px;
-}
-
-
-/* =========================
-   DIALOG ACTIONS
-========================= */
-
-.dialog-actions {
-    display: flex;
-
-    justify-content: flex-end;
-
-    gap: 9px;
-
-    padding: 18px 24px;
-
-    border-top: 1px solid #edf0f5;
-
-    background: #fbfcfe;
-}
+projectSwitcher.addEventListener("click", event => {
+    const projectButton = event.target.closest(".project-item");
+    if (!projectButton) return;
+
+    activeProjectId = projectButton.dataset.projectId;
+    activeCategory = "All";
+
+    filterButtons.forEach(button => {
+        button.classList.remove("active");
+        if (button.dataset.category === "All") {
+            button.classList.add("active");
+        }
+    });
+
+    searchInput.value = "";
+    searchText = "";
+
+    updateUI();
+});
 
 
 /* =========================
    NEW PROJECT DIALOG
 ========================= */
 
-#newProjectDialog {
-    max-width: 450px;
-}
+newProjectBtn.addEventListener("click", () => {
+    projectNameInput.value = "";
+    newProjectDialog.showModal();
+    projectNameInput.focus();
+});
 
-.project-dialog-body {
-    padding: 22px 24px;
-}
 
-.project-dialog-body p {
-    margin-bottom: 16px;
+/* =========================
+   CREATE PROJECT
+========================= */
 
-    color: #718096;
+createProjectBtn.addEventListener("click", () => {
+    const name = projectNameInput.value.trim();
+    if (name === "") {
+        projectNameInput.focus();
+        return;
+    }
 
-    font-size: 13px;
+    const newProject = { id: crypto.randomUUID(), name: name };
+    projects.push(newProject);
+    saveProjects(currentUsername, projects);
 
-    line-height: 1.5;
-}
+    activeProjectId = newProject.id;
+    newProjectDialog.close();
+    updateUI();
+});
 
-.project-dialog-body .input-group {
-    margin-bottom: 4px;
+
+/* =========================
+   CREATE PROJECT ENTER
+========================= */
+
+projectNameInput.addEventListener("keydown", event => {
+    if (event.key === "Enter") {
+        event.preventDefault();
+        createProjectBtn.click();
+    }
+});
+
+
+/* =========================
+   CANCEL PROJECT
+========================= */
+
+cancelProjectBtn.addEventListener("click", () => {
+    newProjectDialog.close();
+});
+
+
+/* =========================
+   CLOSE PROJECT DIALOG
+========================= */
+
+closeProjectDialogBtn.addEventListener("click", () => {
+    newProjectDialog.close();
+});
+
+
+/* =========================
+   CATEGORY FILTER
+========================= */
+
+filterButtons.forEach(button => {
+    button.addEventListener("click", () => {
+        activeCategory = button.dataset.category;
+
+        filterButtons.forEach(btn => btn.classList.remove("active"));
+        button.classList.add("active");
+
+        updateUI();
+    });
+});
+
+
+/* =========================
+   LIVE SEARCH
+========================= */
+
+searchInput.addEventListener("input", () => {
+    searchText = searchInput.value.toLowerCase().trim();
+    updateUI();
+});
+
+
+/* =========================
+   SORT
+========================= */
+
+sortSelect.addEventListener("change", () => {
+    updateUI();
+});
+
+
+/* =========================
+   VIEW TOGGLE
+========================= */
+
+listViewBtn.addEventListener("click", () => {
+    currentView = "list";
+    updateViewButtons();
+    updateUI();
+});
+
+boardViewBtn.addEventListener("click", () => {
+    currentView = "board";
+    updateViewButtons();
+    updateUI();
+});
+
+function updateViewButtons() {
+    listViewBtn.classList.toggle("active", currentView === "list");
+    boardViewBtn.classList.toggle("active", currentView === "board");
+    listView.hidden = currentView !== "list";
+    boardView.hidden = currentView !== "board";
 }
 
 
 /* =========================
-   UNDO TOAST
+   GET PROJECT TASKS
 ========================= */
 
-.undo-toast {
-    position: fixed;
-
-    right: 25px;
-    bottom: 25px;
-
-    z-index: 1000;
-
-    display: flex;
-    align-items: center;
-
-    gap: 20px;
-
-    padding: 13px 15px 13px 17px;
-
-    background: #172033;
-    color: white;
-
-    border-radius: 11px;
-
-    box-shadow:
-        0 15px 35px rgba(15, 23, 42, 0.25);
-
-    font-size: 13px;
-
-    animation:
-        toastIn 0.3s ease;
-}
-
-.undo-toast button {
-    border: none;
-
-    background: #3b82f6;
-
-    color: white;
-
-    padding: 7px 11px;
-
-    border-radius: 7px;
-
-    font-size: 12px;
-    font-weight: 700;
-
-    cursor: pointer;
-}
-
-.undo-toast button:hover {
-    background: #60a5fa;
+function getProjectTasks() {
+    return tasks.filter(task => task.projectId === activeProjectId);
 }
 
 
 /* =========================
-   ANIMATIONS
+   GET VISIBLE TASKS
 ========================= */
 
-@keyframes taskAppear {
+function getVisibleTasks() {
+    let visibleTasks = getProjectTasks();
 
-    from {
-        opacity: 0;
-
-        transform:
-            translateY(8px);
+    if (activeCategory !== "All") {
+        visibleTasks = visibleTasks.filter(task => task.category === activeCategory);
     }
 
-    to {
-        opacity: 1;
-
-        transform:
-            translateY(0);
+    if (searchText !== "") {
+        visibleTasks = visibleTasks.filter(task =>
+            String(task.text || "").toLowerCase().includes(searchText)
+        );
     }
 
-}
-
-
-@keyframes toastIn {
-
-    from {
-        opacity: 0;
-
-        transform:
-            translateY(15px);
+    if (sortSelect.value === "az") {
+        visibleTasks.sort((a, b) => String(a.text || "").localeCompare(String(b.text || "")));
+    } else {
+        visibleTasks.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
     }
 
-    to {
-        opacity: 1;
-
-        transform:
-            translateY(0);
-    }
-
-}
-
-
-@keyframes dialogIn {
-
-    from {
-        opacity: 0;
-
-        transform:
-            translateY(12px)
-            scale(0.98);
-    }
-
-    to {
-        opacity: 1;
-
-        transform:
-            translateY(0)
-            scale(1);
-    }
-
+    return visibleTasks;
 }
 
 
 /* =========================
-   RESPONSIVE - TABLET
+   UPDATE UI
 ========================= */
 
-@media (max-width: 1050px) {
+function updateUI() {
+    const visibleTasks = getVisibleTasks();
+    const projectTasks = getProjectTasks();
+    const activeProject = projects.find(project => project.id === activeProjectId);
 
-    .add-task-card {
-        grid-template-columns:
-            1fr 1fr;
+    renderProjects(projects, activeProjectId);
+    renderTasks(visibleTasks);
+    renderBoard(visibleTasks);
+
+    if (activeProject) {
+        renderProgress(activeProject, projectTasks);
     }
 
-    .add-task-card .primary-btn {
-        grid-column: 1 / -1;
-    }
+    updateViewButtons();
 
-    .kanban-board {
-        grid-template-columns:
-            repeat(2, minmax(0, 1fr));
+    if (currentView === "list") {
+        setupListDragAndDrop();
+    } else {
+        setupBoardDragAndDrop();
     }
-
 }
 
 
 /* =========================
-   RESPONSIVE - 850px
+   LIST DRAG & DROP
 ========================= */
 
-@media (max-width: 850px) {
+function setupListDragAndDrop() {
+    const taskItems = document.querySelectorAll(".task-item");
 
-    .controls-card {
-        grid-template-columns: 1fr;
+    taskItems.forEach(item => {
+        item.addEventListener("dragstart", event => {
+            draggedTaskId = item.dataset.id || item.dataset.taskId;
+            item.classList.add("dragging");
+            event.dataTransfer.effectAllowed = "move";
+            event.dataTransfer.setData("text/plain", draggedTaskId);
+        });
+
+        item.addEventListener("dragend", () => {
+            item.classList.remove("dragging");
+            draggedTaskId = null;
+        });
+    });
+
+    taskList.addEventListener("dragover", handleListDragOver);
+    taskList.addEventListener("drop", handleListDrop);
+}
+
+function handleListDragOver(event) {
+    event.preventDefault();
+
+    const draggingItem = document.querySelector(".task-item.dragging");
+    if (!draggingItem) return;
+
+    const taskItems = [...taskList.querySelectorAll(".task-item:not(.dragging)")];
+
+    let closestItem = null;
+    let closestOffset = Number.NEGATIVE_INFINITY;
+
+    for (const item of taskItems) {
+        const box = item.getBoundingClientRect();
+        const offset = event.clientY - box.top - box.height / 2;
+
+        if (offset < 0 && offset > closestOffset) {
+            closestOffset = offset;
+            closestItem = item;
+        }
     }
 
-    .filter-row {
-        width: fit-content;
+    if (closestItem) {
+        taskList.insertBefore(draggingItem, closestItem);
+    } else {
+        taskList.appendChild(draggingItem);
     }
+}
 
-    .sort-box {
-        justify-content: space-between;
-    }
+function handleListDrop(event) {
+    event.preventDefault();
 
-    .view-toggle {
-        width: fit-content;
-    }
+    const orderedIds = [...taskList.querySelectorAll(".task-item")].map(
+        item => item.dataset.id || item.dataset.taskId
+    );
 
-    .projects-header {
-        align-items: flex-start;
+    const visibleSet = new Set(orderedIds);
+    const projectTasks = tasks.filter(task => task.projectId === activeProjectId);
+    const reorderedProjectTasks = [];
 
-        flex-direction: column;
-    }
+    orderedIds.forEach(id => {
+        const task = projectTasks.find(item => item.id === id);
+        if (task) reorderedProjectTasks.push(task);
+    });
 
+    projectTasks.forEach(task => {
+        if (!visibleSet.has(task.id)) {
+            reorderedProjectTasks.push(task);
+        }
+    });
+
+    const otherTasks = tasks.filter(task => task.projectId !== activeProjectId);
+
+    tasks = [...otherTasks, ...reorderedProjectTasks];
+    saveTasks(currentUsername, tasks);
+
+    draggedTaskId = null;
+    updateUI();
 }
 
 
 /* =========================
-   RESPONSIVE - MOBILE
+   BOARD DRAG & DROP
 ========================= */
 
-@media (max-width: 600px) {
-
-    .app-container {
-        width: 94%;
-
-        padding: 30px 0;
-    }
-
-
-    .app-header {
-        align-items: flex-start;
-
-        gap: 18px;
-    }
-
-
-    .app-header h1 {
-        font-size: 34px;
-    }
-
-
-    .task-count {
-        min-width: 65px;
-
-        padding: 10px;
-    }
-
-
-    .add-task-card {
-        grid-template-columns: 1fr;
-    }
-
-    .add-task-card .primary-btn {
-        grid-column: auto;
-    }
-
-
-    .filter-row {
-        width: 100%;
-
-        display: grid;
-
-        grid-template-columns:
-            repeat(4, 1fr);
-    }
-
-
-    .filter-btn {
-        padding: 8px 4px;
-    }
-
-
-    .sort-box {
-        flex-direction: column;
-
-        align-items: stretch;
-    }
-
-
-    .sort-box select {
-        width: 100%;
-    }
-
-
-    .view-toggle {
-        width: 100%;
-    }
-
-    .view-toggle button {
-        flex: 1;
-    }
-
-
-    .kanban-board {
-        grid-template-columns: 1fr;
-    }
-
-
-    .kanban-column {
-        min-height: 220px;
-    }
-
-
-    .kanban-tasks {
-        min-height: 150px;
-    }
-
-
-    .progress-info {
-        align-items: flex-start;
-
-        flex-direction: column;
-
-        gap: 4px;
-    }
-
-
-    .task-item {
-        padding: 14px;
-
-        gap: 10px;
-    }
-
-
-    .delete-btn {
-        padding: 6px;
-    }
-
-
-    .detail-grid {
-        grid-template-columns: 1fr;
-    }
-
-
-    .dialog-header {
-        padding: 18px;
-    }
-
-
-    .detail-body {
-        padding: 18px;
-    }
-
-
-    .dialog-actions {
-        padding: 15px 18px;
-    }
-
-
-    .subtask-add {
-        flex-direction: column;
-    }
-
-
-    .subtask-add button {
-        width: 100%;
-    }
-
-
-    .data-card {
-        flex-direction: column;
-
-        align-items: flex-start;
-    }
-
-
-    .data-actions {
-        width: 100%;
-    }
-
-
-    .secondary-btn {
-        flex: 1;
-    }
-
-
-    .undo-toast {
-        left: 15px;
-        right: 15px;
-        bottom: 15px;
-
-        justify-content:
-            space-between;
-    }
-
+function setupBoardDragAndDrop() {
+    const boardTasks = document.querySelectorAll(".kanban-task");
+    const columns = document.querySelectorAll(".kanban-tasks");
+
+    boardTasks.forEach(card => {
+        card.addEventListener("dragstart", event => {
+            draggedTaskId = card.dataset.taskId || card.dataset.id;
+            card.classList.add("dragging");
+            event.dataTransfer.effectAllowed = "move";
+            event.dataTransfer.setData("text/plain", draggedTaskId);
+        });
+
+        card.addEventListener("dragend", () => {
+            card.classList.remove("dragging");
+            draggedTaskId = null;
+        });
+    });
+
+    columns.forEach(column => {
+        column.addEventListener("dragover", event => {
+            event.preventDefault();
+            column.classList.add("drag-over");
+        });
+
+        column.addEventListener("dragleave", () => {
+            column.classList.remove("drag-over");
+        });
+
+        column.addEventListener("drop", event => {
+            event.preventDefault();
+            column.classList.remove("drag-over");
+
+            const taskId = draggedTaskId || event.dataTransfer.getData("text/plain");
+            if (!taskId) return;
+
+            const task = tasks.find(item => item.id === taskId);
+            if (!task) return;
+
+            let newStatus = "To Do";
+
+            if (column.id === "inProgressColumn") {
+                newStatus = "In Progress";
+            } else if (column.id === "inReviewColumn") {
+                newStatus = "In Review";
+            } else if (column.id === "doneColumn") {
+                newStatus = "Done";
+            }
+
+            task.status = newStatus;
+            task.done = newStatus === "Done";
+
+            saveTasks(currentUsername, tasks);
+            draggedTaskId = null;
+            updateUI();
+        });
+    });
 }
+
+
 /* =========================
-   AUTH SCREEN
+   OPEN TASK DETAIL
 ========================= */
 
-.auth-screen {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #f5f8fc;
+document.addEventListener("click", event => {
+    const taskCard = event.target.closest(".task-item, .kanban-task");
+    if (!taskCard) return;
+
+    if (event.target.closest(".delete-btn")) return;
+
+    const taskId = taskCard.dataset.id || taskCard.dataset.taskId;
+    if (!taskId) return;
+
+    openTaskDetail(taskId);
+});
+
+
+/* =========================
+   OPEN DETAIL
+========================= */
+
+function openTaskDetail(taskId) {
+    const task = tasks.find(item => item.id === taskId);
+    if (!task) return;
+
+    activeDetailTaskId = taskId;
+
+    renderTaskDetail(task);
+    renderSubtasks(task.subtasks || []);
+
+    taskDetailDialog.showModal();
 }
 
-.auth-card {
-    width: min(380px, 90%);
-    background: white;
-    padding: 32px;
-    border-radius: 18px;
-    box-shadow: 0 10px 30px rgba(30, 60, 100, 0.08);
+
+/* =========================
+   CLOSE DETAIL
+========================= */
+
+closeDetailBtn.addEventListener("click", () => {
+    taskDetailDialog.close();
+    activeDetailTaskId = null;
+});
+
+
+/* =========================
+   SAVE DETAIL CHANGES
+========================= */
+
+function saveDetailChanges() {
+    if (!activeDetailTaskId) return;
+
+    const task = tasks.find(item => item.id === activeDetailTaskId);
+    if (!task) return;
+
+    if (detailDescription) {
+        task.description = detailDescription.value ?? "";
+    }
+
+    if (detailStatus) {
+        task.status = detailStatus.value;
+        task.done = task.status === "Done";
+    }
+
+    if (detailPriority) {
+        task.priority = detailPriority.value;
+    }
+
+    if (detailDueDate) {
+        task.dueDate = detailDueDate.value;
+    }
+
+    if (detailCategory) {
+        task.category = detailCategory.value;
+    }
+
+    if (taskNotes) {
+        task.notes = taskNotes.value;
+    }
+
+    saveTasks(currentUsername, tasks);
+    updateUI();
+
+    if (taskDetailDialog.open && activeDetailTaskId) {
+        renderTaskDetail(task);
+        renderSubtasks(task.subtasks || []);
+    }
 }
 
-.auth-card h1 {
-    font-size: 26px;
-    margin-bottom: 8px;
+
+/* =========================
+   DETAIL FIELD CHANGES
+========================= */
+
+detailStatus.addEventListener("change", saveDetailChanges);
+detailPriority.addEventListener("change", saveDetailChanges);
+detailDueDate.addEventListener("change", saveDetailChanges);
+detailCategory.addEventListener("change", saveDetailChanges);
+detailDescription.addEventListener("change", saveDetailChanges);
+
+
+/* =========================
+   SAVE NOTES
+========================= */
+
+saveNotesBtn.addEventListener("click", () => {
+    if (!activeDetailTaskId) return;
+
+    const task = tasks.find(item => item.id === activeDetailTaskId);
+    if (!task) return;
+
+    task.notes = taskNotes.value;
+    saveTasks(currentUsername, tasks);
+    updateUI();
+
+    if (taskDetailDialog.open) {
+        renderTaskDetail(task);
+        renderSubtasks(task.subtasks || []);
+    }
+});
+
+
+/* =========================
+   ADD SUBTASK
+========================= */
+
+addSubtaskBtn.addEventListener("click", addSubtask);
+
+subtaskInput.addEventListener("keydown", event => {
+    if (event.key === "Enter") {
+        event.preventDefault();
+        addSubtask();
+    }
+});
+
+function addSubtask() {
+    if (!activeDetailTaskId) return;
+
+    const text = subtaskInput.value.trim();
+    if (text === "") return;
+
+    const task = tasks.find(item => item.id === activeDetailTaskId);
+    if (!task) return;
+
+    if (!Array.isArray(task.subtasks)) {
+        task.subtasks = [];
+    }
+
+    task.subtasks.push({
+        id: crypto.randomUUID(),
+        text: text,
+        done: false
+    });
+
+    saveTasks(currentUsername, tasks);
+
+    subtaskInput.value = "";
+    renderSubtasks(task.subtasks);
 }
 
-.auth-card p {
-    color: #718096;
-    font-size: 13px;
-    margin-bottom: 20px;
+
+/* =========================
+   SUBTASK CHECK / DELETE
+========================= */
+
+subtaskList.addEventListener("click", event => {
+    if (!activeDetailTaskId) return;
+
+    const task = tasks.find(item => item.id === activeDetailTaskId);
+    if (!task) return;
+
+    const checkbox = event.target.closest(".subtask-checkbox");
+    const deleteButton = event.target.closest(".subtask-delete");
+
+    if (checkbox) {
+        const subtaskId = checkbox.dataset.subtaskId;
+        const subtask = task.subtasks.find(item => item.id === subtaskId);
+
+        if (subtask) {
+            subtask.done = checkbox.checked;
+        }
+
+        saveTasks(currentUsername, tasks);
+        renderSubtasks(task.subtasks);
+        return;
+    }
+
+    if (deleteButton) {
+        const subtaskId = deleteButton.dataset.subtaskId;
+        task.subtasks = task.subtasks.filter(item => item.id !== subtaskId);
+
+        saveTasks(currentUsername, tasks);
+        renderSubtasks(task.subtasks);
+    }
+});
+
+
+/* =========================
+   DELETE TASK
+========================= */
+
+document.addEventListener("click", event => {
+    if (!event.target.classList.contains("delete-btn")) return;
+
+    const taskCard = event.target.closest(".task-item, .kanban-task");
+    if (!taskCard) return;
+
+    const taskId = taskCard.dataset.id || taskCard.dataset.taskId;
+    deleteTask(taskId);
+});
+
+
+/* =========================
+   DELETE FUNCTION
+========================= */
+
+function deleteTask(taskId) {
+    const originalIndex = tasks.findIndex(task => task.id === taskId);
+    if (originalIndex === -1) return;
+
+    const removedTask = tasks[originalIndex];
+    tasks = tasks.filter(task => task.id !== taskId);
+
+    saveTasks(currentUsername, tasks);
+    updateUI();
+
+    showUndoToast(removedTask, originalIndex);
 }
 
-.auth-card .input-group {
-    margin-bottom: 14px;
+
+/* =========================
+   UNDO
+========================= */
+
+function showUndoToast(removedTask, originalIndex) {
+    let undoUsed = false;
+
+    undoToast.hidden = false;
+
+    const timeoutId = setTimeout(() => {
+        undoToast.hidden = true;
+    }, 5000);
+
+    function undoDelete() {
+        if (undoUsed) return;
+        undoUsed = true;
+
+        clearTimeout(timeoutId);
+
+        tasks.splice(originalIndex, 0, removedTask);
+        saveTasks(currentUsername, tasks);
+        updateUI();
+
+        undoToast.hidden = true;
+    }
+
+    undoBtn.onclick = undoDelete;
 }
 
-.auth-error {
-    color: #dc3f3f;
-    font-size: 13px;
-    margin-bottom: 10px;
-}
 
-.auth-actions {
-    display: flex;
-    gap: 10px;
-    margin-top: 10px;
-}
+/* =========================
+   EXPORT
+========================= */
 
-.auth-actions button {
-    flex: 1;
-}
+exportBtn.addEventListener("click", () => {
+    const data = { projects: projects, tasks: tasks };
+    const json = JSON.stringify(data, null, 2);
+    const blob = new Blob([json], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "tasks.json";
+
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+
+    URL.revokeObjectURL(url);
+});
+
+
+/* =========================
+   IMPORT
+========================= */
+
+importInput.addEventListener("change", event => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+
+    reader.onload = event => {
+        try {
+            const importedData = JSON.parse(event.target.result);
+
+            if (
+                importedData &&
+                !Array.isArray(importedData) &&
+                Array.isArray(importedData.projects) &&
+                Array.isArray(importedData.tasks)
+            ) {
+                projects = importedData.projects;
+                tasks = importedData.tasks;
+
+                if (projects.length === 0) {
+                    projects.push({ id: crypto.randomUUID(), name: "My Project" });
+                }
+
+                activeProjectId = projects[0].id;
+
+            } else if (Array.isArray(importedData)) {
+
+                if (projects.length === 0) {
+                    projects.push({ id: crypto.randomUUID(), name: "My Project" });
+                    saveProjects(currentUsername, projects);
+                }
+
+                activeProjectId = projects[0].id;
+                tasks = importedData;
+
+            } else {
+                throw new Error("Invalid task data");
+            }
+
+            tasks = tasks
+                .filter(task => task && typeof task.text === "string")
+                .map(task => ({
+                    id: task.id || crypto.randomUUID(),
+                    projectId: task.projectId || activeProjectId,
+                    text: task.text,
+                    category: task.category || "Work",
+                    status: task.status || (task.done ? "Done" : "To Do"),
+                    done: task.status === "Done" || Boolean(task.done),
+                    description: task.description || "",
+                    dueDate: task.dueDate || "",
+                    priority: task.priority || "Normal",
+                    notes: task.notes || "",
+                    subtasks: Array.isArray(task.subtasks)
+                        ? task.subtasks.map(subtask => ({
+                            id: subtask.id || crypto.randomUUID(),
+                            text: subtask.text || "",
+                            done: Boolean(subtask.done ?? subtask.completed)
+                        }))
+                        : [],
+                    createdAt: task.createdAt || Date.now()
+                }));
+
+            saveProjects(currentUsername, projects);
+            saveTasks(currentUsername, tasks);
+            updateUI();
+
+            importInput.value = "";
+
+        } catch (error) {
+            console.error(error);
+            alert("Invalid JSON file. Please import a valid tasks.json file.");
+        }
+    };
+
+    reader.readAsText(file);
+});
+
+
+/* =========================
+   KEYBOARD SHORTCUTS
+========================= */
+
+document.addEventListener("keydown", event => {
+    const activeElement = document.activeElement;
+
+    const isTyping = activeElement && (
+        activeElement.tagName === "INPUT" ||
+        activeElement.tagName === "TEXTAREA" ||
+        activeElement.tagName === "SELECT"
+    );
+
+    if (event.key.toLowerCase() === "n" && !isTyping) {
+        event.preventDefault();
+        taskInput.focus();
+    }
+
+    if (event.key === "Escape" && !taskDetailDialog.open && !newProjectDialog.open) {
+        searchInput.value = "";
+        searchText = "";
+        updateUI();
+    }
+});
