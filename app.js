@@ -280,3 +280,482 @@ const adminOpenTaskManagerBtn =
     document.getElementById(
         "adminOpenTaskManagerBtn"
     );
+/* =========================
+   AUTH SCREEN FUNCTIONS
+========================= */
+
+function showLoginForm() {
+
+    if (loginForm) {
+        loginForm.hidden = false;
+    }
+
+    if (registerForm) {
+        registerForm.hidden = true;
+    }
+
+    if (loginError) {
+        loginError.textContent = "";
+    }
+
+    if (registerError) {
+        registerError.textContent = "";
+    }
+
+    if (authSubtitle) {
+        authSubtitle.textContent =
+            "Login to continue to your Task Manager";
+    }
+
+}
+
+
+function showRegisterForm() {
+
+    if (loginForm) {
+        loginForm.hidden = true;
+    }
+
+    if (registerForm) {
+        registerForm.hidden = false;
+    }
+
+    if (loginError) {
+        loginError.textContent = "";
+    }
+
+    if (registerError) {
+        registerError.textContent = "";
+    }
+
+    if (authSubtitle) {
+        authSubtitle.textContent =
+            "Create your account to get started";
+    }
+
+}
+
+
+/* =========================
+   SHOW USER APP
+========================= */
+
+function showUserApp() {
+
+    if (adminDashboard) {
+        adminDashboard.hidden = true;
+    }
+
+    if (userTaskManager) {
+        userTaskManager.hidden = false;
+    }
+
+    if (welcomeMessage && currentUser) {
+
+        welcomeMessage.textContent =
+            `Welcome, ${currentUser.name}!`;
+
+    }
+
+}
+
+
+/* =========================
+   SHOW ADMIN DASHBOARD
+========================= */
+
+function showAdminDashboard() {
+
+    if (adminDashboard) {
+        adminDashboard.hidden = false;
+    }
+
+    if (userTaskManager) {
+        userTaskManager.hidden = true;
+    }
+
+    if (welcomeMessage) {
+
+        welcomeMessage.textContent =
+            "Welcome, Master Admin!";
+
+    }
+
+}
+
+
+/* =========================
+   SHOW APP
+========================= */
+
+function showApp() {
+
+    if (authScreen) {
+        authScreen.hidden = true;
+    }
+
+    if (appScreen) {
+        appScreen.hidden = false;
+    }
+
+
+    if (currentUser && isAdmin(currentUser)) {
+
+        showAdminDashboard();
+
+        updateAdminDashboard();
+
+    } else {
+
+        showUserApp();
+
+    }
+
+}
+
+
+/* =========================
+   SHOW AUTH
+========================= */
+
+function showAuth() {
+
+    if (authScreen) {
+        authScreen.hidden = false;
+    }
+
+    if (appScreen) {
+        appScreen.hidden = true;
+    }
+
+    showLoginForm();
+
+}
+
+
+/* =========================
+   AUTH PAGE BUTTONS
+========================= */
+
+if (showRegisterBtn) {
+
+    showRegisterBtn.addEventListener(
+        "click",
+        () => {
+
+            showRegisterForm();
+
+        }
+    );
+
+}
+
+
+if (showLoginBtn) {
+
+    showLoginBtn.addEventListener(
+        "click",
+        () => {
+
+            showLoginForm();
+
+        }
+    );
+
+}
+
+
+/* =========================
+   REGISTER USER
+========================= */
+
+if (registerForm) {
+
+    registerForm.addEventListener(
+        "submit",
+        event => {
+
+            event.preventDefault();
+
+
+            const name =
+                registerName
+                    ? registerName.value.trim()
+                    : "";
+
+            const email =
+                registerEmail
+                    ? registerEmail.value
+                        .trim()
+                        .toLowerCase()
+                    : "";
+
+            const password =
+                registerPassword
+                    ? registerPassword.value
+                    : "";
+
+
+            if (registerError) {
+                registerError.textContent = "";
+            }
+
+
+            if (!name || !email || !password) {
+
+                if (registerError) {
+
+                    registerError.textContent =
+                        "Please fill all fields.";
+
+                }
+
+                return;
+
+            }
+
+
+            if (password.length < 6) {
+
+                if (registerError) {
+
+                    registerError.textContent =
+                        "Password must be at least 6 characters.";
+
+                }
+
+                return;
+
+            }
+
+
+            const users =
+                loadUsers();
+
+
+            const existingUser =
+                users.find(
+                    user =>
+                        user.email === email
+                );
+
+
+            if (existingUser) {
+
+                if (registerError) {
+
+                    registerError.textContent =
+                        "Email already registered.";
+
+                }
+
+                return;
+
+            }
+
+
+            const newUser = {
+
+                id:
+                    crypto.randomUUID(),
+
+                name:
+                    name,
+
+                email:
+                    email,
+
+                password:
+                    password,
+
+                role:
+                    "user"
+
+            };
+
+
+            users.push(newUser);
+
+            saveUsers(users);
+
+
+            setCurrentUser(newUser);
+
+            currentUser =
+                newUser;
+
+
+            tasks =
+                loadTasks();
+
+            projects =
+                loadProjects();
+
+
+            ensureDefaultProject();
+
+
+            registerForm.reset();
+
+
+            showApp();
+
+            updateUI();
+
+        }
+    );
+
+}
+
+
+/* =========================
+   LOGIN
+========================= */
+
+if (loginForm) {
+
+    loginForm.addEventListener(
+        "submit",
+        event => {
+
+            event.preventDefault();
+
+
+            const email =
+                loginEmail
+                    ? loginEmail.value
+                        .trim()
+                        .toLowerCase()
+                    : "";
+
+            const password =
+                loginPassword
+                    ? loginPassword.value
+                    : "";
+
+
+            if (loginError) {
+                loginError.textContent = "";
+            }
+
+
+            /* =========================
+               MASTER ADMIN LOGIN
+            ========================= */
+
+            if (
+                isMasterCredentials(
+                    email,
+                    password
+                )
+            ) {
+
+                currentUser =
+                    getMasterUser();
+
+                setCurrentUser(
+                    currentUser
+                );
+
+
+                tasks = [];
+                projects = [];
+
+                activeProjectId = null;
+
+
+                loginForm.reset();
+
+
+                showApp();
+
+                updateAdminDashboard();
+
+                return;
+
+            }
+
+
+            /* =========================
+               NORMAL USER LOGIN
+            ========================= */
+
+            const user =
+                findUserByEmail(email);
+
+
+            if (
+                !user ||
+                user.password !== password
+            ) {
+
+                if (loginError) {
+
+                    loginError.textContent =
+                        "Invalid email or password.";
+
+                }
+
+                return;
+
+            }
+
+
+            currentUser =
+                user;
+
+            setCurrentUser(
+                user
+            );
+
+
+            tasks =
+                loadTasks();
+
+            projects =
+                loadProjects();
+
+
+            ensureDefaultProject();
+
+
+            loginForm.reset();
+
+
+            showApp();
+
+            updateUI();
+
+        }
+    );
+
+}
+
+
+/* =========================
+   LOGOUT
+========================= */
+
+if (logoutBtn) {
+
+    logoutBtn.addEventListener(
+        "click",
+        () => {
+
+            clearCurrentUser();
+
+            currentUser = null;
+
+            tasks = [];
+            projects = [];
+
+            activeProjectId = null;
+            activeDetailTaskId = null;
+
+
+            showAuth();
+
+        }
+    );
+
+}
