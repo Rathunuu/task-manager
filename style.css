@@ -2409,3 +2409,54 @@ document.addEventListener(
         }
     }
 );
+        
+/* =========================
+   AUTH SCREEN
+========================= */
+
+.auth-screen {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f5f8fc;
+}
+
+.auth-card {
+    width: min(380px, 90%);
+    background: white;
+    padding: 32px;
+    border-radius: 18px;
+    box-shadow: 0 10px 30px rgba(30, 60, 100, 0.08);
+}
+
+.auth-card h1 {
+    font-size: 26px;
+    margin-bottom: 8px;
+}
+
+.auth-card p {
+    color: #718096;
+    font-size: 13px;
+    margin-bottom: 20px;
+}
+
+.auth-card .input-group {
+    margin-bottom: 14px;
+}
+
+.auth-error {
+    color: #dc3f3f;
+    font-size: 13px;
+    margin-bottom: 10px;
+}
+
+.auth-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.auth-actions button {
+    flex: 1;
+}
