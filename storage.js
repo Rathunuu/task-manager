@@ -448,3 +448,10 @@ export function createAssignedTask(
     return newTask;
 
 }
+/* =========================================================
+   ADMIN CHECK
+========================================================= */
+
+export function isAdmin(user) {
+    return user && user.role === "admin";
+}
