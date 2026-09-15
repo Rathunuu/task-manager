@@ -2444,3 +2444,136 @@ document.addEventListener(
 
     }
 );
+/* =====================================================
+   EXPORT TASKS
+===================================================== */
+
+function exportTasks() {
+
+    if (!currentUser || isAdmin(currentUser)) {
+        return;
+    }
+
+    const data =
+        JSON.stringify(
+            tasks,
+            null,
+            2
+        );
+
+    const blob =
+        new Blob(
+            [data],
+            {
+                type: "application/json"
+            }
+        );
+
+    const url =
+        URL.createObjectURL(blob);
+
+    const link =
+        document.createElement("a");
+
+    link.href = url;
+
+    link.download =
+        "tasks.json";
+
+    document.body.appendChild(link);
+
+    link.click();
+
+    link.remove();
+
+    URL.revokeObjectURL(url);
+
+}
+
+
+/* =====================================================
+   EXPORT BUTTON
+===================================================== */
+
+const exportBtn =
+    document.getElementById("exportBtn");
+
+if (exportBtn) {
+
+    exportBtn.addEventListener(
+        "click",
+        exportTasks
+    );
+
+}
+
+
+/* =====================================================
+   IMPORT TASKS
+===================================================== */
+
+const importInput =
+    document.getElementById("importInput");
+
+if (importInput) {
+
+    importInput.addEventListener(
+        "change",
+        event => {
+
+            const file =
+                event.target.files[0];
+
+            if (!file) {
+                return;
+            }
+
+            const reader =
+                new FileReader();
+
+            reader.onload =
+                () => {
+
+                    try {
+
+                        const importedTasks =
+                            JSON.parse(
+                                reader.result
+                            );
+
+                        if (
+                            !Array.isArray(
+                                importedTasks
+                            )
+                        ) {
+                            throw new Error(
+                                "Invalid task file"
+                            );
+                        }
+
+                        tasks =
+                            importedTasks;
+
+                        saveTasks(tasks);
+
+                        updateTaskDisplay();
+
+                    } catch (error) {
+
+                        console.error(
+                            "Import failed:",
+                            error
+                        );
+
+                    }
+
+                };
+
+            reader.readAsText(file);
+
+            event.target.value = "";
+
+        }
+    );
+
+}
