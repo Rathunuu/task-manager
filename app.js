@@ -1854,3 +1854,46 @@ if (projectForm) {
     );
 
 }
+/* =====================================================
+   INITIAL UI UPDATE
+===================================================== */
+
+function updateUI() {
+
+    if (!currentUser) {
+        showAuth();
+        return;
+    }
+
+    if (isAdmin(currentUser)) {
+        showAdminDashboard();
+        updateAdminDashboard();
+        return;
+    }
+
+    showUserApp();
+
+    tasks = loadTasks();
+    projects = loadProjects();
+
+    ensureDefaultProject();
+
+    renderProjects(
+        projects,
+        activeProjectId
+    );
+
+    updateTaskDisplay();
+
+}
+
+
+/* =====================================================
+   START APPLICATION
+===================================================== */
+
+if (currentUser) {
+    updateUI();
+} else {
+    showAuth();
+}
