@@ -1243,3 +1243,100 @@ if (adminOpenTaskManagerBtn) {
     );
 
 }
+/* =====================================================
+   TASK MANAGER ELEMENTS
+===================================================== */
+
+const taskForm =
+    document.getElementById("taskForm");
+
+const taskInput =
+    document.getElementById("taskInput");
+
+const categorySelect =
+    document.getElementById("categorySelect");
+
+const searchInput =
+    document.getElementById("searchInput");
+
+const clearSearchBtn =
+    document.getElementById("clearSearchBtn");
+
+const sortSelect =
+    document.getElementById("sortSelect");
+
+const listViewBtn =
+    document.getElementById("listViewBtn");
+
+const boardViewBtn =
+    document.getElementById("boardViewBtn");
+
+const taskList =
+    document.getElementById("taskList");
+
+const board =
+    document.getElementById("board");
+
+const projectSelect =
+    document.getElementById("projectSelect");
+
+const newProjectBtn =
+    document.getElementById("newProjectBtn");
+
+const projectNameInput =
+    document.getElementById("projectNameInput");
+
+const projectForm =
+    document.getElementById("projectForm");
+
+const projectModal =
+    document.getElementById("projectModal");
+
+const closeProjectModalBtn =
+    document.getElementById("closeProjectModalBtn");
+
+
+/* =====================================================
+   TASK DETAIL ELEMENTS
+===================================================== */
+
+const taskDetailModal =
+    document.getElementById("taskDetailModal");
+
+const taskDetailTitle =
+    document.getElementById("taskDetailTitle");
+
+const taskDetailDescription =
+    document.getElementById("taskDetailDescription");
+
+const taskDetailCategory =
+    document.getElementById("taskDetailCategory");
+
+const taskDetailPriority =
+    document.getElementById("taskDetailPriority");
+
+const taskDetailStatus =
+    document.getElementById("taskDetailStatus");
+
+const taskDetailDueDate =
+    document.getElementById("taskDetailDueDate");
+
+const taskDetailNotes =
+    document.getElementById("taskDetailNotes");
+
+const taskDetailSubtasks =
+    document.getElementById("taskDetailSubtasks");
+
+const closeTaskDetailBtn =
+    document.getElementById("closeTaskDetailBtn");
+
+
+/* =====================================================
+   UNDO TOAST
+===================================================== */
+
+const undoToast =
+    document.getElementById("undoToast");
+
+const undoDeleteBtn =
+    document.getElementById("undoDeleteBtn");
