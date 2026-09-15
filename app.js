@@ -1897,3 +1897,68 @@ if (currentUser) {
 } else {
     showAuth();
 }
+/* =====================================================
+   UPDATE TASK STATUS
+===================================================== */
+
+function updateTaskStatus(taskId, newStatus) {
+
+    const task =
+        tasks.find(
+            item => item.id === taskId
+        );
+
+    if (!task) {
+        return;
+    }
+
+    task.status =
+        newStatus;
+
+    task.updatedAt =
+        new Date().toISOString();
+
+    saveTasks(tasks);
+
+    updateTaskDisplay();
+
+    if (
+        currentUser &&
+        isAdmin(currentUser)
+    ) {
+        updateAdminDashboard();
+    }
+
+}
+
+
+/* =====================================================
+   TASK STATUS EVENT
+===================================================== */
+
+document.addEventListener(
+    "change",
+    event => {
+
+        const statusSelect =
+            event.target.closest(
+                "[data-task-status]"
+            );
+
+        if (!statusSelect) {
+            return;
+        }
+
+        const taskId =
+            statusSelect.dataset.taskStatus;
+
+        const newStatus =
+            statusSelect.value;
+
+        updateTaskStatus(
+            taskId,
+            newStatus
+        );
+
+    }
+);
