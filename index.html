@@ -21,19 +21,30 @@
         <div class="auth-card">
 
             <div class="auth-header">
-                <div class="eyebrow">WELCOME</div>
 
-                <h1>Task Manager</h1>
+                <div class="eyebrow">
+                    WELCOME
+                </div>
+
+                <h1>
+                    Task Manager
+                </h1>
 
                 <p id="authSubtitle">
                     Login to manage your tasks
                 </p>
+
             </div>
 
 
-            <!-- LOGIN FORM -->
+            <!-- =========================
+                 LOGIN FORM
+            ========================== -->
 
-            <form id="loginForm" class="auth-form">
+            <form
+                id="loginForm"
+                class="auth-form"
+            >
 
                 <div class="input-group">
 
@@ -99,7 +110,9 @@
 
 
 
-            <!-- REGISTER FORM -->
+            <!-- =========================
+                 REGISTER FORM
+            ========================== -->
 
             <form
                 id="registerForm"
@@ -254,762 +267,1270 @@
 
 
         <!-- =========================
-             PROJECTS
-        ========================== -->
-
-        <section class="projects-card">
-
-            <div class="projects-header">
-
-                <h2>
-                    Your Projects
-                </h2>
-
-                <div
-                    id="projectSwitcher"
-                    class="project-switcher"
-                ></div>
-
-            </div>
-
-
-            <div class="project-progress">
-
-                <div class="progress-info">
-
-                    <span id="activeProjectName">
-                        No project
-                    </span>
-
-                    <span id="progressText">
-                        0 of 0 tasks done
-                    </span>
-
-                </div>
-
-
-                <div class="progress-bar">
-
-                    <div
-                        id="progressFill"
-                        class="progress-fill"
-                    ></div>
-
-                </div>
-
-            </div>
-
-        </section>
-
-
-
-        <!-- =========================
-             ADD TASK
-        ========================== -->
-
-        <section class="add-task-card">
-
-            <div class="input-group">
-
-                <label for="taskInput">
-                    Task
-                </label>
-
-                <input
-                    type="text"
-                    id="taskInput"
-                    placeholder="What needs to be done?"
-                >
-
-            </div>
-
-
-            <div class="input-group">
-
-                <label for="categorySelect">
-                    Category
-                </label>
-
-                <select id="categorySelect">
-
-                    <option value="Work">
-                        Work
-                    </option>
-
-                    <option value="Personal">
-                        Personal
-                    </option>
-
-                    <option value="Urgent">
-                        Urgent
-                    </option>
-
-                </select>
-
-            </div>
-
-
-            <div class="input-group">
-
-                <label for="statusSelect">
-                    Status
-                </label>
-
-                <select id="statusSelect">
-
-                    <option value="To Do">
-                        To Do
-                    </option>
-
-                    <option value="In Progress">
-                        In Progress
-                    </option>
-
-                    <option value="In Review">
-                        In Review
-                    </option>
-
-                    <option value="Done">
-                        Done
-                    </option>
-
-                </select>
-
-            </div>
-
-
-            <button
-                id="addTaskBtn"
-                class="primary-btn"
-                type="button"
-            >
-
-                <span>
-                    +
-                </span>
-
-                Add Task
-
-            </button>
-
-        </section>
-
-
-
-        <!-- =========================
-             CONTROLS
-        ========================== -->
-
-        <section class="controls-card">
-
-            <div class="search-box">
-
-                <span class="search-icon">
-                    ⌕
-                </span>
-
-                <input
-                    type="text"
-                    id="searchInput"
-                    placeholder="Search tasks..."
-                >
-
-            </div>
-
-
-            <div
-                id="categoryFilters"
-                class="filter-row"
-            >
-
-                <button
-                    class="filter-btn active"
-                    data-category="All"
-                    type="button"
-                >
-                    All
-                </button>
-
-                <button
-                    class="filter-btn"
-                    data-category="Work"
-                    type="button"
-                >
-                    Work
-                </button>
-
-                <button
-                    class="filter-btn"
-                    data-category="Personal"
-                    type="button"
-                >
-                    Personal
-                </button>
-
-                <button
-                    class="filter-btn"
-                    data-category="Urgent"
-                    type="button"
-                >
-                    Urgent
-                </button>
-
-            </div>
-
-
-            <div class="sort-box">
-
-                <label for="sortSelect">
-                    Sort
-                </label>
-
-                <select id="sortSelect">
-
-                    <option value="newest">
-                        Newest
-                    </option>
-
-                    <option value="oldest">
-                        Oldest
-                    </option>
-
-                    <option value="az">
-                        A - Z
-                    </option>
-
-                    <option value="za">
-                        Z - A
-                    </option>
-
-                </select>
-
-            </div>
-
-
-            <div class="view-toggle">
-
-                <button
-                    id="listViewBtn"
-                    class="active"
-                    type="button"
-                >
-                    List
-                </button>
-
-                <button
-                    id="boardViewBtn"
-                    type="button"
-                >
-                    Board
-                </button>
-
-            </div>
-
-        </section>
-
-
-
-        <!-- =========================
-             LIST VIEW
+             MASTER ADMIN DASHBOARD
         ========================== -->
 
         <section
-            id="listView"
-            class="task-section"
+            id="adminDashboard"
+            class="admin-dashboard"
+            hidden
         >
 
-            <div class="section-heading">
+            <!-- ADMIN HEADER -->
+
+            <div class="admin-header">
 
                 <div>
 
+                    <div class="eyebrow">
+                        MASTER ACCESS
+                    </div>
+
                     <h2>
-                        Your Tasks
+                        Admin Dashboard
                     </h2>
 
                     <p>
-                        Drag tasks to reorder them.
+                        Manage users, assign tasks and view progress reports.
                     </p>
 
                 </div>
 
+                <div class="admin-badge">
+                    👑 Master Admin
+                </div>
+
             </div>
 
 
-            <ul id="taskList"></ul>
 
+            <!-- =========================
+                 ADMIN SUMMARY CARDS
+            ========================== -->
 
-            <div
-                id="emptyState"
-                class="empty-state"
-            >
+            <div class="admin-summary-grid">
 
-                <div class="empty-icon">
-                    ✓
-                </div>
+                <div class="admin-summary-card">
 
-                <h3>
-                    No tasks found
-                </h3>
+                    <span class="admin-summary-icon">
+                        👥
+                    </span>
 
-                <p>
-                    Add a task or change your filters.
-                </p>
+                    <div>
 
-            </div>
-
-        </section>
-
-
-
-        <!-- =========================
-             KANBAN BOARD
-        ========================== -->
-
-        <section
-            id="boardView"
-            class="board-view"
-            hidden
-        >
-
-            <div class="kanban-board">
-
-                <!-- TO DO -->
-
-                <div
-                    class="kanban-column"
-                    id="todoColumn"
-                    data-status="To Do"
-                >
-
-                    <div class="kanban-column-header">
-
-                        <h3>
-                            To Do
-                        </h3>
-
-                        <span
-                            id="todoCount"
-                            class="kanban-count"
-                        >
-                            0
+                        <span class="admin-summary-label">
+                            Total Users
                         </span>
 
-                    </div>
+                        <strong id="adminTotalUsers">
+                            0
+                        </strong>
 
-                    <div
-                        id="todoTasks"
-                        class="kanban-tasks"
-                    ></div>
+                    </div>
 
                 </div>
 
 
+                <div class="admin-summary-card">
 
-                <!-- IN PROGRESS -->
+                    <span class="admin-summary-icon">
+                        📋
+                    </span>
 
-                <div
-                    class="kanban-column"
-                    id="inProgressColumn"
-                    data-status="In Progress"
-                >
+                    <div>
 
-                    <div class="kanban-column-header">
-
-                        <h3>
-                            In Progress
-                        </h3>
-
-                        <span
-                            id="inProgressCount"
-                            class="kanban-count"
-                        >
-                            0
+                        <span class="admin-summary-label">
+                            Total Tasks
                         </span>
 
-                    </div>
+                        <strong id="adminTotalTasks">
+                            0
+                        </strong>
 
-                    <div
-                        id="inProgressTasks"
-                        class="kanban-tasks"
-                    ></div>
+                    </div>
 
                 </div>
 
 
+                <div class="admin-summary-card">
 
-                <!-- IN REVIEW -->
+                    <span class="admin-summary-icon">
+                        ⏳
+                    </span>
 
-                <div
-                    class="kanban-column"
-                    id="inReviewColumn"
-                    data-status="In Review"
-                >
+                    <div>
 
-                    <div class="kanban-column-header">
-
-                        <h3>
-                            In Review
-                        </h3>
-
-                        <span
-                            id="inReviewCount"
-                            class="kanban-count"
-                        >
-                            0
+                        <span class="admin-summary-label">
+                            Pending
                         </span>
 
-                    </div>
+                        <strong id="adminPendingTasks">
+                            0
+                        </strong>
 
-                    <div
-                        id="inReviewTasks"
-                        class="kanban-tasks"
-                    ></div>
+                    </div>
 
                 </div>
 
 
+                <div class="admin-summary-card">
 
-                <!-- DONE -->
+                    <span class="admin-summary-icon">
+                        ✅
+                    </span>
 
-                <div
-                    class="kanban-column"
-                    id="doneColumn"
-                    data-status="Done"
-                >
+                    <div>
 
-                    <div class="kanban-column-header">
-
-                        <h3>
-                            Done
-                        </h3>
-
-                        <span
-                            id="doneCount"
-                            class="kanban-count"
-                        >
-                            0
+                        <span class="admin-summary-label">
+                            Completed
                         </span>
 
-                    </div>
+                        <strong id="adminCompletedTasks">
+                            0
+                        </strong>
 
-                    <div
-                        id="doneTasks"
-                        class="kanban-tasks"
-                    ></div>
+                    </div>
 
                 </div>
 
             </div>
 
-        </section>
 
 
+            <!-- =========================
+                 ADMIN USERS
+            ========================== -->
 
-        <!-- =========================
-             TASK DETAIL DIALOG
-        ========================== -->
+            <section class="admin-card">
 
-        <dialog id="taskDetailDialog">
+                <div class="admin-card-header">
 
-            <div class="dialog-header">
+                    <div>
 
-                <h2 id="detailTaskTitle">
-                    Task Details
-                </h2>
+                        <h3>
+                            Users
+                        </h3>
 
-                <button
-                    id="closeTaskDetailBtn"
-                    class="close-btn"
-                    type="button"
-                >
-                    ×
-                </button>
+                        <p>
+                            View registered users and their task progress.
+                        </p>
 
-            </div>
+                    </div>
 
+                </div>
 
-            <div class="detail-body">
 
                 <div
-                    id="detailDescription"
-                    class="detail-description"
+                    id="adminUsersList"
+                    class="admin-users-list"
                 ></div>
 
-
-                <div class="detail-grid">
-
-                    <div class="detail-field">
-
-                        <label>
-                            Status
-                        </label>
-
-                        <span id="detailStatus"></span>
-
-                    </div>
+            </section>
 
 
-                    <div class="detail-field">
 
-                        <label>
-                            Priority
-                        </label>
+            <!-- =========================
+                 ASSIGN TASK
+            ========================== -->
 
-                        <span id="detailPriority"></span>
+            <section class="admin-card">
 
-                    </div>
+                <div class="admin-card-header">
 
+                    <div>
 
-                    <div class="detail-field">
+                        <h3>
+                            Assign Task
+                        </h3>
 
-                        <label>
-                            Due Date
-                        </label>
-
-                        <span id="detailDueDate"></span>
-
-                    </div>
-
-
-                    <div class="detail-field">
-
-                        <label>
-                            Category
-                        </label>
-
-                        <span id="detailCategory"></span>
+                        <p>
+                            Create and assign a task to a user.
+                        </p>
 
                     </div>
 
                 </div>
 
 
+                <form
+                    id="adminAssignTaskForm"
+                    class="admin-form"
+                >
 
-                <!-- NOTES -->
+                    <!-- USER -->
 
-                <div class="detail-section">
+                    <div class="input-group">
 
-                    <div class="detail-section-header">
+                        <label for="adminUserSelect">
+                            Assign To
+                        </label>
 
-                        <h3>
-                            Notes
-                        </h3>
-
-                        <button
-                            id="saveNotesBtn"
-                            class="secondary-btn"
-                            type="button"
+                        <select
+                            id="adminUserSelect"
+                            required
                         >
-                            Save Notes
-                        </button>
 
-                    </div>
+                            <option value="">
+                                Select a user
+                            </option>
 
-                    <textarea
-                        id="taskNotes"
-                        placeholder="Add notes..."
-                    ></textarea>
-
-                </div>
-
-
-
-                <!-- SUBTASKS -->
-
-                <div class="detail-section">
-
-                    <div class="detail-section-header">
-
-                        <h3>
-                            Subtasks
-                        </h3>
+                        </select>
 
                     </div>
 
 
-                    <div class="subtask-add">
+                    <!-- TASK TITLE -->
+
+                    <div class="input-group">
+
+                        <label for="adminTaskTitle">
+                            Task
+                        </label>
 
                         <input
                             type="text"
-                            id="subtaskInput"
-                            placeholder="Add a subtask..."
+                            id="adminTaskTitle"
+                            placeholder="Enter task title"
+                            required
                         >
 
+                    </div>
+
+
+                    <!-- DESCRIPTION -->
+
+                    <div class="input-group">
+
+                        <label for="adminTaskDescription">
+                            Description
+                        </label>
+
+                        <textarea
+                            id="adminTaskDescription"
+                            placeholder="Describe the task..."
+                            rows="4"
+                        ></textarea>
+
+                    </div>
+
+
+                    <div class="admin-form-grid">
+
+                        <!-- CATEGORY -->
+
+                        <div class="input-group">
+
+                            <label for="adminTaskCategory">
+                                Category
+                            </label>
+
+                            <select
+                                id="adminTaskCategory"
+                            >
+
+                                <option value="Work">
+                                    Work
+                                </option>
+
+                                <option value="Personal">
+                                    Personal
+                                </option>
+
+                                <option value="Urgent">
+                                    Urgent
+                                </option>
+
+                            </select>
+
+                        </div>
+
+
+                        <!-- PRIORITY -->
+
+                        <div class="input-group">
+
+                            <label for="adminTaskPriority">
+                                Priority
+                            </label>
+
+                            <select
+                                id="adminTaskPriority"
+                            >
+
+                                <option value="Normal">
+                                    Normal
+                                </option>
+
+                                <option value="High">
+                                    High
+                                </option>
+
+                                <option value="Low">
+                                    Low
+                                </option>
+
+                            </select>
+
+                        </div>
+
+
+                        <!-- DUE DATE -->
+
+                        <div class="input-group">
+
+                            <label for="adminTaskDueDate">
+                                Due Date
+                            </label>
+
+                            <input
+                                type="date"
+                                id="adminTaskDueDate"
+                            >
+
+                        </div>
+
+
+                        <!-- PROJECT -->
+
+                        <div class="input-group">
+
+                            <label for="adminTaskProject">
+                                Project
+                            </label>
+
+                            <select
+                                id="adminTaskProject"
+                            >
+
+                                <option value="">
+                                    Default Project
+                                </option>
+
+                            </select>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="admin-form-actions">
+
                         <button
-                            id="addSubtaskBtn"
-                            class="secondary-btn"
-                            type="button"
+                            type="submit"
+                            id="adminAssignTaskBtn"
+                            class="primary-btn"
                         >
-                            Add
+                            Assign Task
                         </button>
 
                     </div>
 
 
-                    <div id="subtaskList"></div>
+                    <p
+                        id="adminAssignMessage"
+                        class="admin-message"
+                    ></p>
+
+                </form>
+
+            </section>
+
+
+
+            <!-- =========================
+                 REPORTS
+            ========================== -->
+
+            <section class="admin-card">
+
+                <div class="admin-card-header">
+
+                    <div>
+
+                        <h3>
+                            Reports
+                        </h3>
+
+                        <p>
+                            User-wise task progress and status.
+                        </p>
+
+                    </div>
+
+                    <button
+                        id="refreshAdminReportsBtn"
+                        class="secondary-btn"
+                        type="button"
+                    >
+                        Refresh Reports
+                    </button>
 
                 </div>
 
-            </div>
+
+                <div class="admin-report-summary">
+
+                    <div class="report-stat">
+
+                        <span>
+                            To Do
+                        </span>
+
+                        <strong id="adminTodoTasks">
+                            0
+                        </strong>
+
+                    </div>
 
 
-            <div class="dialog-actions">
+                    <div class="report-stat">
+
+                        <span>
+                            In Progress
+                        </span>
+
+                        <strong id="adminInProgressTasks">
+                            0
+                        </strong>
+
+                    </div>
+
+
+                    <div class="report-stat">
+
+                        <span>
+                            In Review
+                        </span>
+
+                        <strong id="adminInReviewTasks">
+                            0
+                        </strong>
+
+                    </div>
+
+
+                    <div class="report-stat">
+
+                        <span>
+                            Done
+                        </span>
+
+                        <strong id="adminDoneTasks">
+                            0
+                        </strong>
+
+                    </div>
+
+                </div>
+
+
+                <div
+                    id="adminReportsList"
+                    class="admin-reports-list"
+                ></div>
+
+            </section>
+
+
+
+            <!-- =========================
+                 ADMIN ACTIONS
+            ========================== -->
+
+            <section class="admin-actions-card">
+
+                <div>
+
+                    <h3>
+                        Master Controls
+                    </h3>
+
+                    <p>
+                        Use the task manager with your own admin account if needed.
+                    </p>
+
+                </div>
+
 
                 <button
-                    id="closeTaskDetailBtnBottom"
-                    class="secondary-btn"
+                    id="adminOpenTaskManagerBtn"
+                    class="primary-btn"
                     type="button"
                 >
-                    Close
+                    Open My Task Manager
                 </button>
 
-            </div>
+            </section>
 
-        </dialog>
+        </section>
 
 
 
         <!-- =========================
-             NEW PROJECT DIALOG
+             NORMAL USER TASK MANAGER
         ========================== -->
 
-        <dialog id="newProjectDialog">
+        <div id="userTaskManager">
 
-            <div class="dialog-header">
+            <!-- =========================
+                 PROJECTS
+            ========================== -->
 
-                <h2>
-                    Create New Project
-                </h2>
+            <section class="projects-card">
 
-                <button
-                    id="closeProjectDialogBtn"
-                    class="close-btn"
-                    type="button"
-                >
-                    ×
-                </button>
+                <div class="projects-header">
 
-            </div>
+                    <h2>
+                        Your Projects
+                    </h2>
+
+                    <div
+                        id="projectSwitcher"
+                        class="project-switcher"
+                    ></div>
+
+                </div>
 
 
-            <div class="project-dialog-body">
+                <div class="project-progress">
 
-                <p>
-                    Create a project to organize your tasks.
-                </p>
+                    <div class="progress-info">
 
+                        <span id="activeProjectName">
+                            No project
+                        </span>
+
+                        <span id="progressText">
+                            0 of 0 tasks done
+                        </span>
+
+                    </div>
+
+
+                    <div class="progress-bar">
+
+                        <div
+                            id="progressFill"
+                            class="progress-fill"
+                        ></div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+
+            <!-- =========================
+                 ADD TASK
+            ========================== -->
+
+            <section class="add-task-card">
 
                 <div class="input-group">
 
-                    <label for="projectNameInput">
-                        Project Name
+                    <label for="taskInput">
+                        Task
                     </label>
 
                     <input
                         type="text"
-                        id="projectNameInput"
-                        placeholder="Enter project name"
+                        id="taskInput"
+                        placeholder="What needs to be done?"
                     >
 
                 </div>
 
-            </div>
+
+                <div class="input-group">
+
+                    <label for="categorySelect">
+                        Category
+                    </label>
+
+                    <select id="categorySelect">
+
+                        <option value="Work">
+                            Work
+                        </option>
+
+                        <option value="Personal">
+                            Personal
+                        </option>
+
+                        <option value="Urgent">
+                            Urgent
+                        </option>
+
+                    </select>
+
+                </div>
 
 
-            <div class="dialog-actions">
+                <div class="input-group">
+
+                    <label for="statusSelect">
+                        Status
+                    </label>
+
+                    <select id="statusSelect">
+
+                        <option value="To Do">
+                            To Do
+                        </option>
+
+                        <option value="In Progress">
+                            In Progress
+                        </option>
+
+                        <option value="In Review">
+                            In Review
+                        </option>
+
+                        <option value="Done">
+                            Done
+                        </option>
+
+                    </select>
+
+                </div>
+
 
                 <button
-                    id="cancelProjectBtn"
-                    class="secondary-btn"
-                    type="button"
-                >
-                    Cancel
-                </button>
-
-                <button
-                    id="createProjectBtn"
+                    id="addTaskBtn"
                     class="primary-btn"
                     type="button"
                 >
-                    Create Project
+
+                    <span>
+                        +
+                    </span>
+
+                    Add Task
+
                 </button>
 
-            </div>
-
-        </dialog>
+            </section>
 
 
 
-        <!-- =========================
-             DATA MANAGEMENT
-        ========================== -->
+            <!-- =========================
+                 CONTROLS
+            ========================== -->
 
-        <section class="data-card">
+            <section class="controls-card">
 
-            <div>
+                <div class="search-box">
 
-                <h3>
-                    Data Management
-                </h3>
+                    <span class="search-icon">
+                        ⌕
+                    </span>
 
-                <p>
-                    Export or import your task manager data.
-                </p>
+                    <input
+                        type="text"
+                        id="searchInput"
+                        placeholder="Search tasks..."
+                    >
 
-            </div>
+                </div>
 
 
-            <div class="data-actions">
+                <div
+                    id="categoryFilters"
+                    class="filter-row"
+                >
+
+                    <button
+                        class="filter-btn active"
+                        data-category="All"
+                        type="button"
+                    >
+                        All
+                    </button>
+
+                    <button
+                        class="filter-btn"
+                        data-category="Work"
+                        type="button"
+                    >
+                        Work
+                    </button>
+
+                    <button
+                        class="filter-btn"
+                        data-category="Personal"
+                        type="button"
+                    >
+                        Personal
+                    </button>
+
+                    <button
+                        class="filter-btn"
+                        data-category="Urgent"
+                        type="button"
+                    >
+                        Urgent
+                    </button>
+
+                </div>
+
+
+                <div class="sort-box">
+
+                    <label for="sortSelect">
+                        Sort
+                    </label>
+
+                    <select id="sortSelect">
+
+                        <option value="newest">
+                            Newest
+                        </option>
+
+                        <option value="oldest">
+                            Oldest
+                        </option>
+
+                        <option value="az">
+                            A - Z
+                        </option>
+
+                        <option value="za">
+                            Z - A
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="view-toggle">
+
+                    <button
+                        id="listViewBtn"
+                        class="active"
+                        type="button"
+                    >
+                        List
+                    </button>
+
+                    <button
+                        id="boardViewBtn"
+                        type="button"
+                    >
+                        Board
+                    </button>
+
+                </div>
+
+            </section>
+
+
+
+            <!-- =========================
+                 LIST VIEW
+            ========================== -->
+
+            <section
+                id="listView"
+                class="task-section"
+            >
+
+                <div class="section-heading">
+
+                    <div>
+
+                        <h2>
+                            Your Tasks
+                        </h2>
+
+                        <p>
+                            Drag tasks to reorder them.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <ul id="taskList"></ul>
+
+
+                <div
+                    id="emptyState"
+                    class="empty-state"
+                >
+
+                    <div class="empty-icon">
+                        ✓
+                    </div>
+
+                    <h3>
+                        No tasks found
+                    </h3>
+
+                    <p>
+                        Add a task or change your filters.
+                    </p>
+
+                </div>
+
+            </section>
+
+
+
+            <!-- =========================
+                 KANBAN BOARD
+            ========================== -->
+
+            <section
+                id="boardView"
+                class="board-view"
+                hidden
+            >
+
+                <div class="kanban-board">
+
+                    <!-- TO DO -->
+
+                    <div
+                        class="kanban-column"
+                        id="todoColumn"
+                        data-status="To Do"
+                    >
+
+                        <div class="kanban-column-header">
+
+                            <h3>
+                                To Do
+                            </h3>
+
+                            <span
+                                id="todoCount"
+                                class="kanban-count"
+                            >
+                                0
+                            </span>
+
+                        </div>
+
+                        <div
+                            id="todoTasks"
+                            class="kanban-tasks"
+                        ></div>
+
+                    </div>
+
+
+
+                    <!-- IN PROGRESS -->
+
+                    <div
+                        class="kanban-column"
+                        id="inProgressColumn"
+                        data-status="In Progress"
+                    >
+
+                        <div class="kanban-column-header">
+
+                            <h3>
+                                In Progress
+                            </h3>
+
+                            <span
+                                id="inProgressCount"
+                                class="kanban-count"
+                            >
+                                0
+                            </span>
+
+                        </div>
+
+                        <div
+                            id="inProgressTasks"
+                            class="kanban-tasks"
+                        ></div>
+
+                    </div>
+
+
+
+                    <!-- IN REVIEW -->
+
+                    <div
+                        class="kanban-column"
+                        id="inReviewColumn"
+                        data-status="In Review"
+                    >
+
+                        <div class="kanban-column-header">
+
+                            <h3>
+                                In Review
+                            </h3>
+
+                            <span
+                                id="inReviewCount"
+                                class="kanban-count"
+                            >
+                                0
+                            </span>
+
+                        </div>
+
+                        <div
+                            id="inReviewTasks"
+                            class="kanban-tasks"
+                        ></div>
+
+                    </div>
+
+
+
+                    <!-- DONE -->
+
+                    <div
+                        class="kanban-column"
+                        id="doneColumn"
+                        data-status="Done"
+                    >
+
+                        <div class="kanban-column-header">
+
+                            <h3>
+                                Done
+                            </h3>
+
+                            <span
+                                id="doneCount"
+                                class="kanban-count"
+                            >
+                                0
+                            </span>
+
+                        </div>
+
+                        <div
+                            id="doneTasks"
+                            class="kanban-tasks"
+                        ></div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+
+            <!-- =========================
+                 TASK DETAIL DIALOG
+            ========================== -->
+
+            <dialog id="taskDetailDialog">
+
+                <div class="dialog-header">
+
+                    <h2 id="detailTaskTitle">
+                        Task Details
+                    </h2>
+
+                    <button
+                        id="closeTaskDetailBtn"
+                        class="close-btn"
+                        type="button"
+                    >
+                        ×
+                    </button>
+
+                </div>
+
+
+                <div class="detail-body">
+
+                    <div
+                        id="detailDescription"
+                        class="detail-description"
+                    ></div>
+
+
+                    <div class="detail-grid">
+
+                        <div class="detail-field">
+
+                            <label>
+                                Status
+                            </label>
+
+                            <span id="detailStatus"></span>
+
+                        </div>
+
+
+                        <div class="detail-field">
+
+                            <label>
+                                Priority
+                            </label>
+
+                            <span id="detailPriority"></span>
+
+                        </div>
+
+
+                        <div class="detail-field">
+
+                            <label>
+                                Due Date
+                            </label>
+
+                            <span id="detailDueDate"></span>
+
+                        </div>
+
+
+                        <div class="detail-field">
+
+                            <label>
+                                Category
+                            </label>
+
+                            <span id="detailCategory"></span>
+
+                        </div>
+
+                    </div>
+
+
+
+                    <!-- NOTES -->
+
+                    <div class="detail-section">
+
+                        <div class="detail-section-header">
+
+                            <h3>
+                                Notes
+                            </h3>
+
+                            <button
+                                id="saveNotesBtn"
+                                class="secondary-btn"
+                                type="button"
+                            >
+                                Save Notes
+                            </button>
+
+                        </div>
+
+                        <textarea
+                            id="taskNotes"
+                            placeholder="Add notes..."
+                        ></textarea>
+
+                    </div>
+
+
+
+                    <!-- SUBTASKS -->
+
+                    <div class="detail-section">
+
+                        <div class="detail-section-header">
+
+                            <h3>
+                                Subtasks
+                            </h3>
+
+                        </div>
+
+
+                        <div class="subtask-add">
+
+                            <input
+                                type="text"
+                                id="subtaskInput"
+                                placeholder="Add a subtask..."
+                            >
+
+                            <button
+                                id="addSubtaskBtn"
+                                class="secondary-btn"
+                                type="button"
+                            >
+                                Add
+                            </button>
+
+                        </div>
+
+
+                        <div id="subtaskList"></div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="dialog-actions">
+
+                    <button
+                        id="closeTaskDetailBtnBottom"
+                        class="secondary-btn"
+                        type="button"
+                    >
+                        Close
+                    </button>
+
+                </div>
+
+            </dialog>
+
+
+
+            <!-- =========================
+                 NEW PROJECT DIALOG
+            ========================== -->
+
+            <dialog id="newProjectDialog">
+
+                <div class="dialog-header">
+
+                    <h2>
+                        Create New Project
+                    </h2>
+
+                    <button
+                        id="closeProjectDialogBtn"
+                        class="close-btn"
+                        type="button"
+                    >
+                        ×
+                    </button>
+
+                </div>
+
+
+                <div class="project-dialog-body">
+
+                    <p>
+                        Create a project to organize your tasks.
+                    </p>
+
+
+                    <div class="input-group">
+
+                        <label for="projectNameInput">
+                            Project Name
+                        </label>
+
+                        <input
+                            type="text"
+                            id="projectNameInput"
+                            placeholder="Enter project name"
+                        >
+
+                    </div>
+
+                </div>
+
+
+                <div class="dialog-actions">
+
+                    <button
+                        id="cancelProjectBtn"
+                        class="secondary-btn"
+                        type="button"
+                    >
+                        Cancel
+                    </button>
+
+                    <button
+                        id="createProjectBtn"
+                        class="primary-btn"
+                        type="button"
+                    >
+                        Create Project
+                    </button>
+
+                </div>
+
+            </dialog>
+
+
+
+            <!-- =========================
+                 DATA MANAGEMENT
+            ========================== -->
+
+            <section class="data-card">
+
+                <div>
+
+                    <h3>
+                        Data Management
+                    </h3>
+
+                    <p>
+                        Export or import your task manager data.
+                    </p>
+
+                </div>
+
+
+                <div class="data-actions">
+
+                    <button
+                        id="exportBtn"
+                        class="secondary-btn"
+                        type="button"
+                    >
+                        Export
+                    </button>
+
+
+                    <label
+                        for="importInput"
+                        class="secondary-btn"
+                    >
+                        Import
+                    </label>
+
+                    <input
+                        type="file"
+                        id="importInput"
+                        accept=".json"
+                        hidden
+                    >
+
+                </div>
+
+            </section>
+
+
+
+            <!-- =========================
+                 UNDO TOAST
+            ========================== -->
+
+            <div
+                id="undoToast"
+                class="undo-toast"
+                hidden
+            >
+
+                <span>
+                    Task deleted — Undo
+                </span>
 
                 <button
-                    id="exportBtn"
-                    class="secondary-btn"
+                    id="undoBtn"
                     type="button"
                 >
-                    Export
+                    Undo
                 </button>
 
-
-                <label
-                    for="importInput"
-                    class="secondary-btn"
-                >
-                    Import
-                </label>
-
-                <input
-                    type="file"
-                    id="importInput"
-                    accept=".json"
-                    hidden
-                >
-
             </div>
-
-        </section>
-
-
-
-        <!-- =========================
-             UNDO TOAST
-        ========================== -->
-
-        <div
-            id="undoToast"
-            class="undo-toast"
-            hidden
-        >
-
-            <span>
-                Task deleted — Undo
-            </span>
-
-            <button
-                id="undoBtn"
-                type="button"
-            >
-                Undo
-            </button>
 
         </div>
 
