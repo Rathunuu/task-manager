@@ -2756,3 +2756,630 @@ function escapeHtml(value) {
             "&#039;"
         );
 }
+/* =========================================================
+   PART 5 / 5
+   ADMIN ASSIGN + ADMIN BOARD + IMPORT/EXPORT
+   + KEYBOARD + START APPLICATION
+========================================================= */
+
+
+/* =========================================================
+   ADMIN - ASSIGN TASK TO USER
+========================================================= */
+
+if (adminAssignTaskForm) {
+
+    adminAssignTaskForm.addEventListener("submit", event => {
+
+        event.preventDefault();
+
+        if (!currentUser) return;
+        if (currentUser.role !== "admin") return;
+
+        const userId =
+            adminUserSelect
+                ? adminUserSelect.value
+                : "";
+
+        const title =
+            adminTaskTitle
+                ? adminTaskTitle.value.trim()
+                : "";
+
+        const description =
+            adminTaskDescription
+                ? adminTaskDescription.value.trim()
+                : "";
+
+        const category =
+            adminTaskCategory
+                ? adminTaskCategory.value
+                : "Work";
+
+        const priority =
+            adminTaskPriority
+                ? adminTaskPriority.value
+                : "Normal";
+
+        const dueDate =
+            adminTaskDueDate
+                ? adminTaskDueDate.value
+                : "";
+
+        const projectId =
+            adminTaskProject
+                ? adminTaskProject.value
+                : "";
+
+        if (!userId) {
+
+            if (adminAssignMessage) {
+                adminAssignMessage.textContent =
+                    "Please select a user.";
+            }
+
+            return;
+        }
+
+        if (!title) {
+
+            if (adminAssignMessage) {
+                adminAssignMessage.textContent =
+                    "Please enter a task title.";
+            }
+
+            return;
+        }
+
+        const assignedTask =
+            createAssignedTask(
+                userId,
+                {
+                    text: title,
+                    description,
+                    category,
+                    priority,
+                    dueDate,
+                    projectId: projectId || null,
+                    status: "To Do"
+                }
+            );
+
+        if (!assignedTask) {
+
+            if (adminAssignMessage) {
+                adminAssignMessage.textContent =
+                    "Could not assign task.";
+            }
+
+            return;
+        }
+
+        if (adminAssignMessage) {
+            adminAssignMessage.textContent =
+                "Task assigned successfully.";
+        }
+
+        if (adminAssignTaskForm) {
+            adminAssignTaskForm.reset();
+        }
+
+        updateAdminProjectOptions("");
+
+        updateAdminDashboard();
+        renderAdminBoard();
+    });
+}
+
+
+/* =========================================================
+   ADMIN - BOARD
+========================================================= */
+
+function renderAdminBoard() {
+
+    if (!currentUser) return;
+    if (currentUser.role !== "admin") return;
+
+    const users =
+        getAllRegularUsers();
+
+    const allTasks = [];
+
+    users.forEach(user => {
+
+        const userTasks =
+            loadUserTasksForAdmin(user.id);
+
+        userTasks.forEach(task => {
+
+            allTasks.push({
+                ...task,
+                assignedUserName: user.name,
+                assignedUserEmail: user.email,
+                assignedUserId: user.id
+            });
+
+        });
+
+    });
+
+    const columns = {
+        "To Do": adminTodoTasks,
+        "In Progress": adminInProgressTasks,
+        "In Review": adminInReviewTasks,
+        "Done": adminDoneTasks
+    };
+
+    Object.values(columns).forEach(column => {
+
+        if (column) {
+            column.innerHTML = "";
+        }
+
+    });
+
+    allTasks.forEach(task => {
+
+        const column =
+            columns[task.status] ||
+            columns["To Do"];
+
+        if (!column) return;
+
+        const card =
+            document.createElement("div");
+
+        card.className =
+            "admin-task-card";
+
+        card.innerHTML = `
+
+            <div class="admin-task-title">
+                ${escapeHtml(task.text)}
+            </div>
+
+            <div class="admin-task-user">
+                Assigned to:
+                <strong>
+                    ${escapeHtml(task.assignedUserName)}
+                </strong>
+            </div>
+
+            <div class="admin-task-meta">
+                <span>
+                    ${escapeHtml(task.category || "Work")}
+                </span>
+
+                <span>
+                    ${escapeHtml(task.priority || "Normal")}
+                </span>
+            </div>
+
+            ${
+                task.dueDate
+                    ? `<div class="admin-task-due">
+                        Due: ${escapeHtml(task.dueDate)}
+                       </div>`
+                    : ""
+            }
+
+        `;
+
+        column.appendChild(card);
+    });
+}
+
+
+/* =========================================================
+   ADMIN - OPEN TASK MANAGER BUTTON
+========================================================= */
+
+if (adminOpenTaskManagerBtn) {
+
+    adminOpenTaskManagerBtn.addEventListener(
+        "click",
+        () => {
+
+            if (!currentUser) return;
+
+            if (currentUser.role === "admin") {
+
+                alert(
+                    "Master Admin can manage users and assigned tasks from this dashboard."
+                );
+
+                return;
+            }
+
+            showUserApp();
+            updateUI();
+        }
+    );
+}
+
+
+/* =========================================================
+   EXPORT TASKS
+========================================================= */
+
+if (exportBtn) {
+
+    exportBtn.addEventListener(
+        "click",
+        () => {
+
+            if (!currentUser) return;
+            if (currentUser.role === "admin") return;
+
+            const exportData = {
+                exportedAt:
+                    new Date().toISOString(),
+
+                user: {
+                    id: currentUser.id,
+                    name: currentUser.name,
+                    email: currentUser.email
+                },
+
+                projects,
+                tasks
+            };
+
+            const blob =
+                new Blob(
+                    [
+                        JSON.stringify(
+                            exportData,
+                            null,
+                            2
+                        )
+                    ],
+                    {
+                        type: "application/json"
+                    }
+                );
+
+            const url =
+                URL.createObjectURL(blob);
+
+            const link =
+                document.createElement("a");
+
+            link.href = url;
+
+            link.download =
+                "tasks.json";
+
+            document.body.appendChild(link);
+
+            link.click();
+
+            link.remove();
+
+            URL.revokeObjectURL(url);
+        }
+    );
+}
+
+
+/* =========================================================
+   IMPORT TASKS
+========================================================= */
+
+if (importInput) {
+
+    importInput.addEventListener(
+        "change",
+        event => {
+
+            if (!currentUser) return;
+            if (currentUser.role === "admin") return;
+
+            const file =
+                event.target.files?.[0];
+
+            if (!file) return;
+
+            const reader =
+                new FileReader();
+
+            reader.onload = () => {
+
+                try {
+
+                    const importedData =
+                        JSON.parse(
+                            reader.result
+                        );
+
+                    let importedTasks = [];
+
+                    let importedProjects = [];
+
+                    if (
+                        Array.isArray(
+                            importedData
+                        )
+                    ) {
+                        importedTasks =
+                            importedData;
+                    }
+
+                    else {
+
+                        if (
+                            Array.isArray(
+                                importedData.tasks
+                            )
+                        ) {
+                            importedTasks =
+                                importedData.tasks;
+                        }
+
+                        if (
+                            Array.isArray(
+                                importedData.projects
+                            )
+                        ) {
+                            importedProjects =
+                                importedData.projects;
+                        }
+                    }
+
+                    if (!Array.isArray(importedTasks)) {
+                        importedTasks = [];
+                    }
+
+                    if (!Array.isArray(importedProjects)) {
+                        importedProjects = [];
+                    }
+
+                    tasks =
+                        importedTasks.map(
+                            task => ({
+                                id:
+                                    task.id ||
+                                    crypto.randomUUID(),
+
+                                text:
+                                    task.text ||
+                                    "Imported Task",
+
+                                category:
+                                    task.category ||
+                                    "Work",
+
+                                status:
+                                    task.status ||
+                                    "To Do",
+
+                                priority:
+                                    task.priority ||
+                                    "Normal",
+
+                                dueDate:
+                                    task.dueDate ||
+                                    "",
+
+                                description:
+                                    task.description ||
+                                    "",
+
+                                notes:
+                                    task.notes ||
+                                    "",
+
+                                subtasks:
+                                    Array.isArray(
+                                        task.subtasks
+                                    )
+                                        ? task.subtasks
+                                        : [],
+
+                                projectId:
+                                    task.projectId ||
+                                    null,
+
+                                createdAt:
+                                    task.createdAt ||
+                                    new Date().toISOString(),
+
+                                updatedAt:
+                                    new Date().toISOString()
+                            })
+                        );
+
+                    if (
+                        importedProjects.length > 0
+                    ) {
+
+                        projects =
+                            importedProjects.map(
+                                project => ({
+                                    id:
+                                        project.id ||
+                                        crypto.randomUUID(),
+
+                                    name:
+                                        project.name ||
+                                        "Imported Project",
+
+                                    createdAt:
+                                        project.createdAt ||
+                                        new Date().toISOString()
+                                })
+                            );
+
+                    }
+
+                    else {
+
+                        if (!Array.isArray(projects)) {
+                            projects = [];
+                        }
+                    }
+
+                    if (projects.length === 0) {
+                        ensureDefaultProject();
+                    }
+
+                    if (
+                        activeProjectId &&
+                        !projects.some(
+                            project =>
+                                project.id ===
+                                activeProjectId
+                        )
+                    ) {
+                        activeProjectId =
+                            projects[0]?.id ||
+                            null;
+                    }
+
+                    saveCurrentUserData();
+
+                    updateUI();
+
+                    alert(
+                        "Tasks imported successfully."
+                    );
+
+                }
+
+                catch (error) {
+
+                    console.error(
+                        "Import error:",
+                        error
+                    );
+
+                    alert(
+                        "Invalid JSON file."
+                    );
+                }
+
+                finally {
+
+                    importInput.value = "";
+                }
+            };
+
+            reader.readAsText(file);
+        }
+    );
+}
+
+
+/* =========================================================
+   KEYBOARD SHORTCUTS
+========================================================= */
+
+document.addEventListener(
+    "keydown",
+    event => {
+
+        const activeElement =
+            document.activeElement;
+
+        const isTyping =
+            activeElement &&
+            (
+                activeElement.tagName === "INPUT" ||
+                activeElement.tagName === "TEXTAREA" ||
+                activeElement.tagName === "SELECT"
+            );
+
+        /* ---------- N = NEW TASK ---------- */
+
+        if (
+            event.key.toLowerCase() === "n" &&
+            !isTyping
+        ) {
+
+            if (
+                currentUser &&
+                currentUser.role !== "admin" &&
+                taskInput
+            ) {
+
+                event.preventDefault();
+
+                taskInput.focus();
+            }
+        }
+
+
+        /* ---------- ESCAPE = CLEAR SEARCH ---------- */
+
+        if (event.key === "Escape") {
+
+            if (
+                searchInput &&
+                searchInput.value
+            ) {
+
+                searchInput.value = "";
+
+                searchTerm = "";
+
+                updateUI();
+            }
+        }
+    }
+);
+
+
+/* =========================================================
+   START APPLICATION
+========================================================= */
+
+function startApplication() {
+
+    currentUser =
+        getCurrentUser();
+
+    if (!currentUser) {
+
+        showLoginForm();
+
+        return;
+    }
+
+    if (currentUser.role === "admin") {
+
+        tasks = [];
+        projects = [];
+        activeProjectId = null;
+
+        showAdminDashboard();
+
+        updateAdminDashboard();
+
+        renderAdminBoard();
+
+        return;
+    }
+
+    loadCurrentUserData();
+
+    ensureDefaultProject();
+
+    loadActiveProject();
+
+    showUserApp();
+
+    updateUI();
+}
+
+
+/* =========================================================
+   INITIAL START
+========================================================= */
+
+startApplication();
+
+
+/* =========================================================
+   END OF APP.JS
+========================================================= */
