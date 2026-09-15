@@ -1872,3 +1872,887 @@ function updateUI() {
 
     updateProjectProgress();
 }
+/* =========================================================
+   PART 4 / 5
+   PROJECTS + TASK DETAILS + SUBTASKS + DRAG & DROP
+========================================================= */
+
+
+/* =========================================================
+   LOAD ACTIVE PROJECT
+========================================================= */
+
+function loadActiveProject() {
+
+    if (!currentUser) return;
+
+    if (currentUser.role === "admin") return;
+
+
+    const savedProject =
+        localStorage.getItem(
+            `task-manager-active-project-${currentUser.id}`
+        );
+
+
+    if (
+        savedProject &&
+        projects.some(
+            project =>
+                project.id === savedProject
+        )
+    ) {
+
+        activeProjectId =
+            savedProject;
+
+        return;
+    }
+
+
+    activeProjectId =
+        projects[0]?.id || null;
+}
+
+
+/* =========================================================
+   PROJECT CLICK
+========================================================= */
+
+document.addEventListener(
+    "click",
+    event => {
+
+        const projectElement =
+            event.target.closest(
+                "[data-project-id]"
+            );
+
+
+        if (!projectElement) return;
+
+        if (!currentUser) return;
+
+
+        const projectId =
+            projectElement.dataset.projectId;
+
+
+        if (!projectId) return;
+
+
+        activeProjectId =
+            projectId;
+
+
+        localStorage.setItem(
+            `task-manager-active-project-${currentUser.id}`,
+            activeProjectId
+        );
+
+
+        updateUI();
+    }
+);
+
+
+/* =========================================================
+   NEW PROJECT
+========================================================= */
+
+if (newProjectBtn) {
+
+    newProjectBtn.addEventListener(
+        "click",
+        () => {
+
+            if (!currentUser) return;
+
+            if (currentUser.role === "admin")
+                return;
+
+
+            if (newProjectDialog) {
+
+                newProjectDialog.showModal();
+            }
+        }
+    );
+}
+
+
+/* =========================================================
+   CREATE PROJECT
+========================================================= */
+
+if (newProjectForm) {
+
+    newProjectForm.addEventListener(
+        "submit",
+        event => {
+
+            event.preventDefault();
+
+
+            if (!currentUser) return;
+
+            if (currentUser.role === "admin")
+                return;
+
+
+            const name =
+                newProjectName
+                    ? newProjectName.value.trim()
+                    : "";
+
+
+            if (!name) return;
+
+
+            const newProject = {
+
+                id:
+                    crypto.randomUUID(),
+
+                name,
+
+                createdAt:
+                    new Date().toISOString()
+            };
+
+
+            projects.push(
+                newProject
+            );
+
+
+            saveProjects(
+                currentUser.id,
+                projects
+            );
+
+
+            activeProjectId =
+                newProject.id;
+
+
+            localStorage.setItem(
+                `task-manager-active-project-${currentUser.id}`,
+                activeProjectId
+            );
+
+
+            newProjectForm.reset();
+
+
+            if (newProjectDialog) {
+
+                newProjectDialog.close();
+            }
+
+
+            updateUI();
+        }
+    );
+}
+
+
+/* =========================================================
+   OPEN TASK DETAIL
+========================================================= */
+
+document.addEventListener(
+    "click",
+    event => {
+
+        const taskElement =
+            event.target.closest(
+                "[data-task-id]"
+            );
+
+
+        if (!taskElement) return;
+
+        if (!currentUser) return;
+
+        if (currentUser.role === "admin")
+            return;
+
+
+        if (
+            event.target.closest(
+                "[data-delete-task]"
+            )
+        ) return;
+
+
+        const taskId =
+            taskElement.dataset.taskId;
+
+
+        if (!taskId) return;
+
+
+        const task =
+            tasks.find(
+                item =>
+                    item.id === taskId
+            );
+
+
+        if (!task) return;
+
+
+        openTaskDetail(
+            task
+        );
+    }
+);
+
+
+/* =========================================================
+   OPEN TASK DETAIL FUNCTION
+========================================================= */
+
+function openTaskDetail(task) {
+
+    currentDetailTaskId =
+        task.id;
+
+
+    if (detailTitle) {
+
+        detailTitle.value =
+            task.text || "";
+    }
+
+
+    if (detailDescription) {
+
+        detailDescription.value =
+            task.description || "";
+    }
+
+
+    if (detailStatus) {
+
+        detailStatus.value =
+            task.status || "To Do";
+    }
+
+
+    if (detailPriority) {
+
+        detailPriority.value =
+            task.priority || "Normal";
+    }
+
+
+    if (detailDueDate) {
+
+        detailDueDate.value =
+            task.dueDate || "";
+    }
+
+
+    if (detailCategory) {
+
+        detailCategory.value =
+            task.category || "Work";
+    }
+
+
+    if (taskNotes) {
+
+        taskNotes.value =
+            task.notes || "";
+    }
+
+
+    renderTaskSubtasks(
+        task
+    );
+
+
+    if (taskDetailDialog) {
+
+        taskDetailDialog.showModal();
+    }
+}
+
+
+/* =========================================================
+   SAVE TASK DETAILS
+========================================================= */
+
+if (saveTaskDetailBtn) {
+
+    saveTaskDetailBtn.addEventListener(
+        "click",
+        () => {
+
+            if (!currentUser) return;
+
+
+            if (!currentDetailTaskId)
+                return;
+
+
+            const task =
+                tasks.find(
+                    item =>
+                        item.id ===
+                        currentDetailTaskId
+                );
+
+
+            if (!task) return;
+
+
+            if (detailTitle) {
+
+                const title =
+                    detailTitle.value.trim();
+
+                if (title) {
+
+                    task.text =
+                        title;
+                }
+            }
+
+
+            if (detailDescription) {
+
+                task.description =
+                    detailDescription.value;
+            }
+
+
+            if (detailStatus) {
+
+                task.status =
+                    detailStatus.value;
+            }
+
+
+            if (detailPriority) {
+
+                task.priority =
+                    detailPriority.value;
+            }
+
+
+            if (detailDueDate) {
+
+                task.dueDate =
+                    detailDueDate.value;
+            }
+
+
+            if (detailCategory) {
+
+                task.category =
+                    detailCategory.value;
+            }
+
+
+            if (taskNotes) {
+
+                task.notes =
+                    taskNotes.value;
+            }
+
+
+            task.updatedAt =
+                new Date().toISOString();
+
+
+            saveTasks(
+                currentUser.id,
+                tasks
+            );
+
+
+            currentDetailTaskId =
+                null;
+
+
+            if (taskDetailDialog) {
+
+                taskDetailDialog.close();
+            }
+
+
+            updateUI();
+        }
+    );
+}
+
+
+/* =========================================================
+   CLOSE TASK DETAIL
+========================================================= */
+
+if (closeDetailBtn) {
+
+    closeDetailBtn.addEventListener(
+        "click",
+        () => {
+
+            currentDetailTaskId =
+                null;
+
+
+            if (taskDetailDialog) {
+
+                taskDetailDialog.close();
+            }
+        }
+    );
+}
+
+
+/* =========================================================
+   RENDER SUBTASKS
+========================================================= */
+
+function renderTaskSubtasks(task) {
+
+    if (!subtaskList) return;
+
+
+    subtaskList.innerHTML =
+        "";
+
+
+    if (!Array.isArray(task.subtasks)) {
+
+        task.subtasks = [];
+    }
+
+
+    task.subtasks.forEach(
+        (subtask, index) => {
+
+            const item =
+                document.createElement(
+                    "div"
+                );
+
+
+            item.className =
+                "subtask-item";
+
+
+            item.innerHTML = `
+
+                <label>
+
+                    <input
+                        type="checkbox"
+                        data-subtask-index="${index}"
+                        ${subtask.completed ? "checked" : ""}
+                    >
+
+                    <span>
+                        ${escapeHtml(subtask.text)}
+                    </span>
+
+                </label>
+
+                <button
+                    type="button"
+                    data-delete-subtask="${index}"
+                >
+                    Delete
+                </button>
+
+            `;
+
+
+            subtaskList.appendChild(
+                item
+            );
+        }
+    );
+}
+
+
+/* =========================================================
+   ADD SUBTASK
+========================================================= */
+
+if (addSubtaskBtn) {
+
+    addSubtaskBtn.addEventListener(
+        "click",
+        () => {
+
+            if (!currentUser) return;
+
+
+            if (!currentDetailTaskId)
+                return;
+
+
+            const task =
+                tasks.find(
+                    item =>
+                        item.id ===
+                        currentDetailTaskId
+                );
+
+
+            if (!task) return;
+
+
+            const text =
+                subtaskInput
+                    ? subtaskInput.value.trim()
+                    : "";
+
+
+            if (!text) return;
+
+
+            if (!Array.isArray(task.subtasks)) {
+
+                task.subtasks = [];
+            }
+
+
+            task.subtasks.push({
+
+                id:
+                    crypto.randomUUID(),
+
+                text,
+
+                completed:
+                    false
+            });
+
+
+            if (subtaskInput) {
+
+                subtaskInput.value =
+                    "";
+            }
+
+
+            saveTasks(
+                currentUser.id,
+                tasks
+            );
+
+
+            renderTaskSubtasks(
+                task
+            );
+        }
+    );
+}
+
+
+/* =========================================================
+   SUBTASK CLICK
+========================================================= */
+
+if (subtaskList) {
+
+    subtaskList.addEventListener(
+        "click",
+        event => {
+
+            if (!currentDetailTaskId)
+                return;
+
+
+            const task =
+                tasks.find(
+                    item =>
+                        item.id ===
+                        currentDetailTaskId
+                );
+
+
+            if (!task) return;
+
+
+            /* DELETE SUBTASK */
+
+            const deleteButton =
+                event.target.closest(
+                    "[data-delete-subtask]"
+                );
+
+
+            if (deleteButton) {
+
+                const index =
+                    Number(
+                        deleteButton.dataset
+                            .deleteSubtask
+                    );
+
+
+                task.subtasks.splice(
+                    index,
+                    1
+                );
+
+
+                saveTasks(
+                    currentUser.id,
+                    tasks
+                );
+
+
+                renderTaskSubtasks(
+                    task
+                );
+
+
+                return;
+            }
+
+
+            /* COMPLETE SUBTASK */
+
+            const checkbox =
+                event.target.closest(
+                    "[data-subtask-index]"
+                );
+
+
+            if (checkbox) {
+
+                const index =
+                    Number(
+                        checkbox.dataset
+                            .subtaskIndex
+                    );
+
+
+                if (
+                    task.subtasks[index]
+                ) {
+
+                    task.subtasks[index]
+                        .completed =
+                        checkbox.checked;
+                }
+
+
+                saveTasks(
+                    currentUser.id,
+                    tasks
+                );
+            }
+        }
+    );
+}
+
+
+/* =========================================================
+   DRAG & DROP
+========================================================= */
+
+let draggedTaskId = null;
+
+
+/* ---------- DRAG START ---------- */
+
+document.addEventListener(
+    "dragstart",
+    event => {
+
+        const taskElement =
+            event.target.closest(
+                "[data-task-id]"
+            );
+
+
+        if (!taskElement) return;
+
+        if (!currentUser) return;
+
+
+        draggedTaskId =
+            taskElement.dataset.taskId;
+
+
+        taskElement.classList.add(
+            "dragging"
+        );
+
+
+        if (
+            event.dataTransfer
+        ) {
+
+            event.dataTransfer.effectAllowed =
+                "move";
+
+            event.dataTransfer.setData(
+                "text/plain",
+                draggedTaskId
+            );
+        }
+    }
+);
+
+
+/* ---------- DRAG END ---------- */
+
+document.addEventListener(
+    "dragend",
+    event => {
+
+        const taskElement =
+            event.target.closest(
+                "[data-task-id]"
+            );
+
+
+        if (taskElement) {
+
+            taskElement.classList.remove(
+                "dragging"
+            );
+        }
+
+
+        draggedTaskId =
+            null;
+    }
+);
+
+
+/* ---------- DRAG OVER ---------- */
+
+document.addEventListener(
+    "dragover",
+    event => {
+
+        const dropZone =
+            event.target.closest(
+                "[data-drop-zone]"
+            );
+
+
+        if (!dropZone) return;
+
+
+        event.preventDefault();
+
+
+        if (
+            event.dataTransfer
+        ) {
+
+            event.dataTransfer.dropEffect =
+                "move";
+        }
+    }
+);
+
+
+/* ---------- DROP ---------- */
+
+document.addEventListener(
+    "drop",
+    event => {
+
+        const dropZone =
+            event.target.closest(
+                "[data-drop-zone]"
+            );
+
+
+        if (!dropZone) return;
+
+
+        event.preventDefault();
+
+
+        if (!currentUser) return;
+
+
+        const taskId =
+            draggedTaskId ||
+            event.dataTransfer?.getData(
+                "text/plain"
+            );
+
+
+        if (!taskId) return;
+
+
+        const task =
+            tasks.find(
+                item =>
+                    item.id === taskId
+            );
+
+
+        if (!task) return;
+
+
+        const newStatus =
+            dropZone.dataset.dropZone;
+
+
+        if (newStatus) {
+
+            task.status =
+                newStatus;
+        }
+
+
+        task.updatedAt =
+            new Date().toISOString();
+
+
+        saveTasks(
+            currentUser.id,
+            tasks
+        );
+
+
+        updateUI();
+    }
+);
+
+
+/* =========================================================
+   HELPER - ESCAPE HTML
+========================================================= */
+
+function escapeHtml(value) {
+
+    return String(
+        value ?? ""
+    )
+        .replaceAll(
+            "&",
+            "&amp;"
+        )
+        .replaceAll(
+            "<",
+            "&lt;"
+        )
+        .replaceAll(
+            ">",
+            "&gt;"
+        )
+        .replaceAll(
+            '"',
+            "&quot;"
+        )
+        .replaceAll(
+            "'",
+            "&#039;"
+        );
+}
