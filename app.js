@@ -190,6 +190,269 @@ function showAuth() {
 
 }
 /* =========================
+   REGISTER
+========================= */
+
+if (showRegisterBtn) {
+
+    showRegisterBtn.addEventListener(
+        "click",
+        () => {
+
+            showRegisterForm();
+
+        }
+    );
+
+}
+
+
+/* =========================
+   LOGIN PAGE
+========================= */
+
+if (showLoginBtn) {
+
+    showLoginBtn.addEventListener(
+        "click",
+        () => {
+
+            showLoginForm();
+
+        }
+    );
+
+}
+
+
+/* =========================
+   REGISTER FORM
+========================= */
+
+if (registerForm) {
+
+    registerForm.addEventListener(
+        "submit",
+        (event) => {
+
+            event.preventDefault();
+
+            const name =
+                registerName.value.trim();
+
+            const email =
+                registerEmail.value
+                    .trim()
+                    .toLowerCase();
+
+            const password =
+                registerPassword.value;
+
+            registerError.textContent = "";
+
+
+            if (!name || !email || !password) {
+
+                registerError.textContent =
+                    "Please fill all fields.";
+
+                return;
+
+            }
+
+
+            if (password.length < 6) {
+
+                registerError.textContent =
+                    "Password must be at least 6 characters.";
+
+                return;
+
+            }
+
+
+            const users =
+                loadUsers();
+
+
+            const existingUser =
+                users.find(
+                    user =>
+                        user.email === email
+                );
+
+
+            if (existingUser) {
+
+                registerError.textContent =
+                    "Email already registered.";
+
+                return;
+
+            }
+
+
+            const newUser = {
+
+                id:
+                    crypto.randomUUID(),
+
+                name:
+                    name,
+
+                email:
+                    email,
+
+                password:
+                    password
+
+            };
+
+
+            users.push(newUser);
+
+            saveUsers(users);
+
+            setCurrentUser(newUser);
+
+            currentUser = newUser;
+
+
+            tasks = loadTasks();
+
+            projects = loadProjects();
+
+
+            if (projects.length === 0) {
+
+                const defaultProject = {
+
+                    id:
+                        crypto.randomUUID(),
+
+                    name:
+                        "My Project"
+
+                };
+
+                projects.push(
+                    defaultProject
+                );
+
+                saveProjects(projects);
+
+            }
+
+
+            activeProjectId =
+                projects[0]?.id || null;
+
+
+            showApp();
+
+            updateUI();
+
+            registerForm.reset();
+
+        }
+
+    );
+
+}
+
+
+/* =========================
+   LOGIN FORM
+========================= */
+
+if (loginForm) {
+
+    loginForm.addEventListener(
+        "submit",
+        (event) => {
+
+            event.preventDefault();
+
+            const email =
+                loginEmail.value
+                    .trim()
+                    .toLowerCase();
+
+            const password =
+                loginPassword.value;
+
+            loginError.textContent = "";
+
+
+            const users =
+                loadUsers();
+
+
+            const user =
+                users.find(
+                    item =>
+                        item.email === email &&
+                        item.password === password
+                );
+
+
+            if (!user) {
+
+                loginError.textContent =
+                    "Invalid email or password.";
+
+                return;
+
+            }
+
+
+            currentUser = user;
+
+            setCurrentUser(user);
+
+
+            tasks = loadTasks();
+
+            projects = loadProjects();
+
+
+            if (projects.length === 0) {
+
+                const defaultProject = {
+
+                    id:
+                        crypto.randomUUID(),
+
+                    name:
+                        "My Project"
+
+                };
+
+                projects.push(
+                    defaultProject
+                );
+
+                saveProjects(projects);
+
+            }
+
+
+            activeProjectId =
+                projects[0]?.id || null;
+
+
+            loginForm.reset();
+
+            showApp();
+
+            updateUI();
+
+        }
+
+    );
+
+}
+/* =========================
    INITIAL DATA
 ========================= */
 
