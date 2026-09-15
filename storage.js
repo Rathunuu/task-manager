@@ -1,101 +1,96 @@
-const USERS_KEY = "task-manager-users";
-const CURRENT_USER_KEY = "task-manager-current-user";
+const TASKS_KEY = "task-manager-tasks";
+const PROJECTS_KEY = "task-manager-projects";
 
 
 /* =========================
-   USER AUTH
+   TASK STORAGE
 ========================= */
 
-export function loadUsers() {
-    const stored = localStorage.getItem(USERS_KEY);
-    if (!stored) return [];
-    try {
-        const users = JSON.parse(stored);
-        return Array.isArray(users) ? users : [];
-    } catch (error) {
+export function loadTasks() {
+
+    const storedTasks =
+        localStorage.getItem(TASKS_KEY);
+
+    if (!storedTasks) {
         return [];
     }
-}
 
-export function saveUsers(users) {
-    localStorage.setItem(USERS_KEY, JSON.stringify(users));
-}
+    try {
 
-export function registerUser(username, password) {
-    const users = loadUsers();
-    const exists = users.find(u => u.username === username);
-    if (exists) {
-        return { success: false, message: "Username already exists." };
+        const tasks =
+            JSON.parse(storedTasks);
+
+        if (!Array.isArray(tasks)) {
+            return [];
+        }
+
+        return tasks;
+
+    } catch (error) {
+
+        console.error(
+            "Could not load tasks:",
+            error
+        );
+
+        return [];
+
     }
-    users.push({ username, password });
-    saveUsers(users);
-    return { success: true };
 }
 
-export function loginUser(username, password) {
-    const users = loadUsers();
-    const user = users.find(u => u.username === username && u.password === password);
-    if (!user) {
-        return { success: false, message: "Invalid username or password." };
-    }
-    localStorage.setItem(CURRENT_USER_KEY, username);
-    return { success: true };
-}
 
-export function logoutUser() {
-    localStorage.removeItem(CURRENT_USER_KEY);
-}
+export function saveTasks(tasks) {
 
-export function getCurrentUser() {
-    return localStorage.getItem(CURRENT_USER_KEY);
+    localStorage.setItem(
+        TASKS_KEY,
+        JSON.stringify(tasks)
+    );
+
 }
 
 
 /* =========================
-   TASK STORAGE (per-user)
+   PROJECT STORAGE
 ========================= */
 
-function tasksKey(username) {
-    return `task-manager-tasks-${username}`;
-}
+export function loadProjects() {
 
-function projectsKey(username) {
-    return `task-manager-projects-${username}`;
-}
+    const storedProjects =
+        localStorage.getItem(PROJECTS_KEY);
 
-export function loadTasks(username) {
-    const storedTasks = localStorage.getItem(tasksKey(username));
-    if (!storedTasks) return [];
-    try {
-        const tasks = JSON.parse(storedTasks);
-        return Array.isArray(tasks) ? tasks : [];
-    } catch (error) {
-        console.error("Could not load tasks:", error);
+    if (!storedProjects) {
         return [];
+    }
+
+    try {
+
+        const projects =
+            JSON.parse(storedProjects);
+
+        if (!Array.isArray(projects)) {
+            return [];
+        }
+
+        return projects;
+
+    } catch (error) {
+
+        console.error(
+            "Could not load projects:",
+            error
+        );
+
+        return [];
+
     }
 }
 
-export function saveTasks(username, tasks) {
-    localStorage.setItem(tasksKey(username), JSON.stringify(tasks));
-}
 
+export function saveProjects(projects) {
 
-/* =========================
-   PROJECT STORAGE (per-user)
-========================= */
+    localStorage.setItem(
+        PROJECTS_KEY,
+        JSON.stringify(projects)
+    );
 
-export function loadProjects(username) {
-    const storedProjects = localStorage.getItem(projectsKey(username));
-    if (!storedProjects) return [];
-    try {
-        const projects = JSON.parse(storedProjects);
-        return Array.isArray(projects) ? projects : [];
-    } catch (error) {
-        console.error("Could not load projects:", error);
-        return [];
-    }
-}
-
-export function saveProjects(username, projects) {
-    localStorage.setItem(projectsKey(username), JSON.stringify(projects));
 }
