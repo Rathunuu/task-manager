@@ -29,6 +29,216 @@ body {
 
 
 /* =========================
+   AUTH SCREEN
+========================= */
+
+.auth-screen {
+    min-height: 100vh;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 30px 20px;
+
+    background:
+        radial-gradient(
+            circle at top left,
+            #e8f1ff 0%,
+            transparent 35%
+        ),
+        radial-gradient(
+            circle at bottom right,
+            #eef5ff 0%,
+            transparent 35%
+        ),
+        #f5f8fc;
+}
+
+
+.auth-card {
+    width: min(430px, 100%);
+
+    background: white;
+
+    border: 1px solid #e3e9f1;
+
+    border-radius: 22px;
+
+    padding: 35px;
+
+    box-shadow:
+        0 25px 70px rgba(30, 60, 100, 0.10);
+
+    animation:
+        authAppear 0.4s ease both;
+}
+
+
+.auth-header {
+    text-align: center;
+
+    margin-bottom: 28px;
+}
+
+
+.auth-header .eyebrow {
+    margin-bottom: 9px;
+}
+
+
+.auth-header h1 {
+    font-size: 32px;
+
+    letter-spacing: -1px;
+}
+
+
+.auth-header p {
+    margin-top: 8px;
+
+    color: #718096;
+
+    font-size: 14px;
+}
+
+
+/* =========================
+   AUTH FORM
+========================= */
+
+.auth-form {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 17px;
+}
+
+
+.auth-form .input-group {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 8px;
+}
+
+
+.auth-form .input-group label {
+    font-size: 12px;
+
+    font-weight: 600;
+
+    color: #667085;
+}
+
+
+.auth-form input {
+    height: 46px;
+
+    width: 100%;
+
+    padding: 0 14px;
+
+    border: 1px solid #dce3ec;
+
+    border-radius: 10px;
+
+    background: #fbfcfe;
+
+    color: #172033;
+
+    font-size: 14px;
+
+    outline: none;
+
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        background 0.2s ease;
+}
+
+
+.auth-form input:focus {
+    border-color: #4f8df7;
+
+    background: white;
+
+    box-shadow:
+        0 0 0 4px rgba(59, 130, 246, 0.09);
+}
+
+
+.auth-btn {
+    width: 100%;
+
+    margin-top: 4px;
+}
+
+
+/* =========================
+   AUTH SWITCH
+========================= */
+
+.auth-switch {
+    text-align: center;
+
+    color: #8491a5;
+
+    font-size: 13px;
+
+    margin-top: 3px;
+}
+
+
+.text-btn {
+    border: none;
+
+    background: transparent;
+
+    color: #2563eb;
+
+    font-family: inherit;
+
+    font-size: 13px;
+
+    font-weight: 700;
+
+    cursor: pointer;
+
+    padding: 0;
+
+    margin-left: 3px;
+}
+
+
+.text-btn:hover {
+    color: #1d4ed8;
+
+    text-decoration: underline;
+}
+
+
+/* =========================
+   AUTH MESSAGE
+========================= */
+
+.auth-message {
+    min-height: 18px;
+
+    font-size: 12px;
+
+    text-align: center;
+}
+
+
+.error-message {
+    color: #dc3f3f;
+}
+
+
+/* =========================
    MAIN CONTAINER
 ========================= */
 
@@ -76,6 +286,19 @@ body {
 
 
 /* =========================
+   HEADER ACTIONS
+========================= */
+
+.header-actions {
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+}
+
+
+/* =========================
    TASK COUNT
 ========================= */
 
@@ -110,6 +333,17 @@ body {
 
     text-transform: uppercase;
     letter-spacing: 1px;
+}
+
+
+/* =========================
+   LOGOUT BUTTON
+========================= */
+
+.logout-btn {
+    height: 40px;
+
+    padding: 0 14px;
 }
 
 
@@ -1488,6 +1722,27 @@ dialog::backdrop {
    ANIMATIONS
 ========================= */
 
+@keyframes authAppear {
+
+    from {
+        opacity: 0;
+
+        transform:
+            translateY(15px)
+            scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+
+        transform:
+            translateY(0)
+            scale(1);
+    }
+
+}
+
+
 @keyframes taskAppear {
 
     from {
@@ -1607,6 +1862,16 @@ dialog::backdrop {
 
 @media (max-width: 600px) {
 
+    .auth-card {
+        padding: 28px 22px;
+    }
+
+
+    .auth-header h1 {
+        font-size: 28px;
+    }
+
+
     .app-container {
         width: 94%;
 
@@ -1626,10 +1891,22 @@ dialog::backdrop {
     }
 
 
+    .header-actions {
+        flex-direction: column;
+
+        align-items: stretch;
+    }
+
+
     .task-count {
         min-width: 65px;
 
         padding: 10px;
+    }
+
+
+    .logout-btn {
+        width: 100%;
     }
 
 
