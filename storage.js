@@ -6,6 +6,14 @@ const PROJECTS_KEY = "task-manager-projects";
 
 
 /* =========================
+   MASTER ACCOUNT
+========================= */
+
+const MASTER_EMAIL = "admin@taskmanager.com";
+const MASTER_PASSWORD = "admin123";
+
+
+/* =========================
    USER STORAGE
 ========================= */
 
@@ -23,11 +31,9 @@ export function loadUsers() {
         const users =
             JSON.parse(storedUsers);
 
-        if (!Array.isArray(users)) {
-            return [];
-        }
-
-        return users;
+        return Array.isArray(users)
+            ? users
+            : [];
 
     } catch (error) {
 
@@ -53,13 +59,73 @@ export function saveUsers(users) {
 
 
 /* =========================
+   FIND USER
+========================= */
+
+export function findUserByEmail(email) {
+
+    const users = loadUsers();
+
+    return users.find(
+        user =>
+            user.email ===
+            String(email)
+                .trim()
+                .toLowerCase()
+    ) || null;
+
+}
+
+
+/* =========================
+   MASTER LOGIN
+========================= */
+
+export function isMasterCredentials(
+    email,
+    password
+) {
+
+    return (
+        String(email)
+            .trim()
+            .toLowerCase() ===
+            MASTER_EMAIL
+        &&
+        password ===
+            MASTER_PASSWORD
+    );
+
+}
+
+
+export function getMasterUser() {
+
+    return {
+
+        id: "master-admin",
+
+        name: "Master Admin",
+
+        email: MASTER_EMAIL,
+
+        role: "admin"
+
+    };
+
+}
+
+
+/* =========================
    SESSION STORAGE
 ========================= */
 
 export function getCurrentUser() {
 
     const storedSession =
-        localStorage.getItem(SESSION_KEY);
+        localStorage.getItem(
+            SESSION_KEY
+        );
 
     if (!storedSession) {
         return null;
@@ -67,7 +133,9 @@ export function getCurrentUser() {
 
     try {
 
-        return JSON.parse(storedSession);
+        return JSON.parse(
+            storedSession
+        );
 
     } catch (error) {
 
@@ -79,6 +147,7 @@ export function getCurrentUser() {
         return null;
 
     }
+
 }
 
 
@@ -102,7 +171,21 @@ export function clearCurrentUser() {
 
 
 /* =========================
-   USER-SPECIFIC KEY
+   USER ROLE
+========================= */
+
+export function isAdmin(user) {
+
+    return Boolean(
+        user &&
+        user.role === "admin"
+    );
+
+}
+
+
+/* =========================
+   USER-SPECIFIC KEYS
 ========================= */
 
 function getUserTasksKey(userId) {
@@ -143,11 +226,9 @@ export function loadTasks(userId) {
         const tasks =
             JSON.parse(storedTasks);
 
-        if (!Array.isArray(tasks)) {
-            return [];
-        }
-
-        return tasks;
+        return Array.isArray(tasks)
+            ? tasks
+            : [];
 
     } catch (error) {
 
@@ -159,10 +240,14 @@ export function loadTasks(userId) {
         return [];
 
     }
+
 }
 
 
-export function saveTasks(userId, tasks) {
+export function saveTasks(
+    userId,
+    tasks
+) {
 
     if (!userId) {
         return;
@@ -170,7 +255,11 @@ export function saveTasks(userId, tasks) {
 
     localStorage.setItem(
         getUserTasksKey(userId),
-        JSON.stringify(tasks)
+        JSON.stringify(
+            Array.isArray(tasks)
+                ? tasks
+                : []
+        )
     );
 
 }
@@ -200,11 +289,9 @@ export function loadProjects(userId) {
         const projects =
             JSON.parse(storedProjects);
 
-        if (!Array.isArray(projects)) {
-            return [];
-        }
-
-        return projects;
+        return Array.isArray(projects)
+            ? projects
+            : [];
 
     } catch (error) {
 
@@ -216,10 +303,14 @@ export function loadProjects(userId) {
         return [];
 
     }
+
 }
 
 
-export function saveProjects(userId, projects) {
+export function saveProjects(
+    userId,
+    projects
+) {
 
     if (!userId) {
         return;
@@ -227,7 +318,133 @@ export function saveProjects(userId, projects) {
 
     localStorage.setItem(
         getUserProjectsKey(userId),
-        JSON.stringify(projects)
+        JSON.stringify(
+            Array.isArray(projects)
+                ? projects
+                : []
+        )
     );
+
+}
+
+
+/* =========================
+   ADMIN TASK ACCESS
+========================= */
+
+/*
+   Master can access any user's
+   tasks through their user ID.
+*/
+
+export function loadUserTasksForAdmin(
+    userId
+) {
+
+    return loadTasks(userId);
+
+}
+
+
+export function saveUserTasksForAdmin(
+    userId,
+    tasks
+) {
+
+    saveTasks(
+        userId,
+        tasks
+    );
+
+}
+
+
+/* =========================
+   USER LIST FOR ADMIN
+========================= */
+
+export function getAllRegularUsers() {
+
+    return loadUsers().filter(
+        user =>
+            user.role !== "admin"
+    );
+
+}
+
+
+/* =========================
+   CREATE ASSIGNED TASK
+========================= */
+
+export function createAssignedTask(
+    userId,
+    taskData
+) {
+
+    if (!userId) {
+        return null;
+    }
+
+    const tasks =
+        loadTasks(userId);
+
+    const newTask = {
+
+        id:
+            crypto.randomUUID(),
+
+        text:
+            taskData.text || "New Task",
+
+        category:
+            taskData.category || "Work",
+
+        status:
+            taskData.status || "To Do",
+
+        priority:
+            taskData.priority || "Normal",
+
+        dueDate:
+            taskData.dueDate || "",
+
+        description:
+            taskData.description || "",
+
+        notes:
+            "",
+
+        subtasks:
+            [],
+
+        assignedBy:
+            "master-admin",
+
+        assignedAt:
+            new Date().toISOString(),
+
+        createdAt:
+            new Date().toISOString(),
+
+        updatedAt:
+            new Date().toISOString(),
+
+        projectId:
+            taskData.projectId || null
+
+    };
+
+
+    tasks.unshift(
+        newTask
+    );
+
+    saveTasks(
+        userId,
+        tasks
+    );
+
+    return newTask;
 
 }
