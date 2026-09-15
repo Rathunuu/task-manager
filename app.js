@@ -154,3 +154,129 @@ function ensureDefaultProject() {
 
 
 ensureDefaultProject();
+/* =========================
+   AUTH ELEMENTS
+========================= */
+
+const authScreen =
+    document.getElementById("authScreen");
+
+const appScreen =
+    document.getElementById("appScreen");
+
+const loginForm =
+    document.getElementById("loginForm");
+
+const registerForm =
+    document.getElementById("registerForm");
+
+const loginEmail =
+    document.getElementById("loginEmail");
+
+const loginPassword =
+    document.getElementById("loginPassword");
+
+const registerName =
+    document.getElementById("registerName");
+
+const registerEmail =
+    document.getElementById("registerEmail");
+
+const registerPassword =
+    document.getElementById("registerPassword");
+
+const loginError =
+    document.getElementById("loginError");
+
+const registerError =
+    document.getElementById("registerError");
+
+const authSubtitle =
+    document.getElementById("authSubtitle");
+
+const showRegisterBtn =
+    document.getElementById("showRegisterBtn");
+
+const showLoginBtn =
+    document.getElementById("showLoginBtn");
+
+const logoutBtn =
+    document.getElementById("logoutBtn");
+
+const welcomeMessage =
+    document.getElementById("welcomeMessage");
+
+
+/* =========================
+   ADMIN ELEMENTS
+========================= */
+
+const adminDashboard =
+    document.getElementById(
+        "adminDashboard"
+    );
+
+const userTaskManager =
+    document.getElementById(
+        "userTaskManager"
+    );
+
+const adminUserSelect =
+    document.getElementById(
+        "adminUserSelect"
+    );
+
+const adminTaskTitle =
+    document.getElementById(
+        "adminTaskTitle"
+    );
+
+const adminTaskDescription =
+    document.getElementById(
+        "adminTaskDescription"
+    );
+
+const adminTaskCategory =
+    document.getElementById(
+        "adminTaskCategory"
+    );
+
+const adminTaskPriority =
+    document.getElementById(
+        "adminTaskPriority"
+    );
+
+const adminTaskDueDate =
+    document.getElementById(
+        "adminTaskDueDate"
+    );
+
+const adminTaskProject =
+    document.getElementById(
+        "adminTaskProject"
+    );
+
+const adminAssignTaskForm =
+    document.getElementById(
+        "adminAssignTaskForm"
+    );
+
+const adminAssignTaskBtn =
+    document.getElementById(
+        "adminAssignTaskBtn"
+    );
+
+const adminAssignMessage =
+    document.getElementById(
+        "adminAssignMessage"
+    );
+
+const refreshAdminReportsBtn =
+    document.getElementById(
+        "refreshAdminReportsBtn"
+    );
+
+const adminOpenTaskManagerBtn =
+    document.getElementById(
+        "adminOpenTaskManagerBtn"
+    );
