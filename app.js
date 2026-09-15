@@ -2,6 +2,7 @@
    TASK MANAGER - APP.JS
    PART 1 / 5
 ========================================================= */
+console.log("APP JS LOADED");
 
 import {
     loadTasks,
