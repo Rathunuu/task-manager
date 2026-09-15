@@ -2081,3 +2081,116 @@ if (undoDeleteBtn) {
     );
 
 }
+/* =====================================================
+   OPEN TASK DETAIL
+===================================================== */
+
+function openTaskDetail(taskId) {
+
+    const task =
+        tasks.find(
+            item => item.id === taskId
+        );
+
+    if (!task) {
+        return;
+    }
+
+    activeDetailTaskId =
+        taskId;
+
+    if (taskDetailModal) {
+        taskDetailModal.hidden = false;
+    }
+
+    if (taskDetailTitle) {
+        taskDetailTitle.value =
+            task.text || "";
+    }
+
+    if (taskDetailDescription) {
+        taskDetailDescription.value =
+            task.description || "";
+    }
+
+    if (taskDetailCategory) {
+        taskDetailCategory.value =
+            task.category || "Work";
+    }
+
+    if (taskDetailPriority) {
+        taskDetailPriority.value =
+            task.priority || "Normal";
+    }
+
+    if (taskDetailStatus) {
+        taskDetailStatus.value =
+            task.status || "To Do";
+    }
+
+    if (taskDetailDueDate) {
+        taskDetailDueDate.value =
+            task.dueDate || "";
+    }
+
+    if (taskDetailNotes) {
+        taskDetailNotes.value =
+            task.notes || "";
+    }
+
+    if (taskDetailSubtasks) {
+        renderSubtasks(
+            task.subtasks || []
+        );
+    }
+
+}
+
+
+/* =====================================================
+   TASK DETAIL BUTTON EVENT
+===================================================== */
+
+document.addEventListener(
+    "click",
+    event => {
+
+        const detailButton =
+            event.target.closest(
+                "[data-task-detail]"
+            );
+
+        if (!detailButton) {
+            return;
+        }
+
+        const taskId =
+            detailButton.dataset.taskDetail;
+
+        openTaskDetail(taskId);
+
+    }
+);
+
+
+/* =====================================================
+   CLOSE TASK DETAIL
+===================================================== */
+
+if (closeTaskDetailBtn) {
+
+    closeTaskDetailBtn.addEventListener(
+        "click",
+        () => {
+
+            if (taskDetailModal) {
+                taskDetailModal.hidden = true;
+            }
+
+            activeDetailTaskId =
+                null;
+
+        }
+    );
+
+}
