@@ -12,40 +12,7 @@
 
 <body>
 
-    <!-- =========================
-         LOGIN / REGISTER SCREEN
-    ========================== -->
-
-    <div id="authScreen" class="auth-screen">
-
-        <div class="auth-card">
-
-            <h1>Task Manager</h1>
-            <p>Login or create an account to continue.</p>
-
-            <div class="input-group">
-                <label for="authUsername">Username</label>
-                <input type="text" id="authUsername" autocomplete="off">
-            </div>
-
-            <div class="input-group">
-                <label for="authPassword">Password</label>
-                <input type="password" id="authPassword" autocomplete="off">
-            </div>
-
-            <p id="authError" class="auth-error" hidden></p>
-
-            <div class="auth-actions">
-                <button id="loginBtn" class="primary-btn" type="button">Login</button>
-                <button id="registerBtn" class="secondary-btn" type="button">Register</button>
-            </div>
-
-        </div>
-
-    </div>
-
-
-    <div class="app-container" id="appContainer" hidden>
+    <div class="app-container">
 
         <!-- =========================
              HEADER
@@ -70,15 +37,6 @@
                 <small>Tasks</small>
 
             </div>
-
-            <button
-                id="logoutBtn"
-                class="secondary-btn"
-                type="button"
-                style="margin-left: 10px;"
-            >
-                Logout (<span id="currentUserLabel"></span>)
-            </button>
 
         </header>
 
@@ -209,6 +167,8 @@
             </div>
 
 
+            <!-- Week 3 Status -->
+
             <div class="input-group">
 
                 <label for="statusSelect">
@@ -259,6 +219,8 @@
 
         <section class="controls-card">
 
+            <!-- Search -->
+
             <div class="search-box">
 
                 <span
@@ -277,6 +239,8 @@
 
             </div>
 
+
+            <!-- Category Filters -->
 
             <div
                 class="filter-row"
@@ -318,6 +282,8 @@
             </div>
 
 
+            <!-- Sort -->
+
             <div class="sort-box">
 
                 <label for="sortSelect">
@@ -338,6 +304,8 @@
 
             </div>
 
+
+            <!-- List / Board Toggle -->
 
             <div
                 class="view-toggle"
@@ -453,6 +421,9 @@
 
             <div class="kanban-board">
 
+
+                <!-- TO DO -->
+
                 <div
                     class="kanban-column"
                     data-status="To Do"
@@ -483,10 +454,13 @@
                         class="kanban-tasks"
                         data-status="To Do"
                     >
+                        <!-- Tasks rendered here -->
                     </div>
 
                 </div>
 
+
+                <!-- IN PROGRESS -->
 
                 <div
                     class="kanban-column"
@@ -518,10 +492,13 @@
                         class="kanban-tasks"
                         data-status="In Progress"
                     >
+                        <!-- Tasks rendered here -->
                     </div>
 
                 </div>
 
+
+                <!-- IN REVIEW -->
 
                 <div
                     class="kanban-column"
@@ -553,10 +530,13 @@
                         class="kanban-tasks"
                         data-status="In Review"
                     >
+                        <!-- Tasks rendered here -->
                     </div>
 
                 </div>
 
+
+                <!-- DONE -->
 
                 <div
                     class="kanban-column"
@@ -588,6 +568,7 @@
                         class="kanban-tasks"
                         data-status="Done"
                     >
+                        <!-- Tasks rendered here -->
                     </div>
 
                 </div>
@@ -632,6 +613,8 @@
 
             </div>
 
+
+            <!-- Task information -->
 
             <div class="task-detail-info">
 
@@ -706,6 +689,8 @@
             </div>
 
 
+            <!-- Notes -->
+
             <div class="detail-section">
 
                 <label for="taskNotes">
@@ -728,6 +713,8 @@
 
             </div>
 
+
+            <!-- Subtasks -->
 
             <div class="detail-section">
 
@@ -772,6 +759,7 @@
                     id="subtaskList"
                     class="subtask-list"
                 >
+                    <!-- Subtasks rendered here -->
                 </ul>
 
             </div>
