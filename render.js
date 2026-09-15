@@ -2,7 +2,7 @@
    RENDER TASKS - LIST VIEW
 ========================= */
 
-export function renderTasks(tasks) {
+export function renderTasks(tasks = []) {
 
     const taskList =
         document.getElementById("taskList");
@@ -20,8 +20,7 @@ export function renderTasks(tasks) {
     taskList.innerHTML = "";
 
     if (taskCount) {
-        taskCount.textContent =
-            tasks.length;
+        taskCount.textContent = tasks.length;
     }
 
     if (tasks.length === 0) {
@@ -43,30 +42,23 @@ export function renderTasks(tasks) {
         const li =
             document.createElement("li");
 
-        li.className =
-            "task-item";
+        li.className = "task-item";
 
         li.setAttribute(
             "draggable",
             "true"
         );
 
-        li.dataset.id =
-            task.id;
-
-        li.dataset.taskId =
-            task.id;
-
-        li.dataset.index =
-            index;
+        li.dataset.id = task.id;
+        li.dataset.taskId = task.id;
+        li.dataset.index = index;
 
 
         const category =
             task.category || "Work";
 
         const categoryClass =
-            String(category)
-                .toLowerCase();
+            String(category).toLowerCase();
 
         const status =
             task.status || "To Do";
@@ -84,9 +76,7 @@ export function renderTasks(tasks) {
             <div class="task-content">
 
                 <strong class="task-title">
-                    ${escapeHTML(
-                        task.text || ""
-                    )}
+                    ${escapeHTML(task.text || "")}
                 </strong>
 
                 <div class="task-meta">
@@ -149,10 +139,6 @@ export function renderProjects(
     projectSwitcher.innerHTML = "";
 
 
-    /* =========================
-       PROJECT BUTTONS
-    ========================= */
-
     projects.forEach(project => {
 
         const button =
@@ -175,6 +161,7 @@ export function renderProjects(
             button.classList.add(
                 "active"
             );
+
         }
 
 
@@ -193,34 +180,50 @@ export function renderProjects(
        NEW PROJECT BUTTON
     ========================= */
 
-    const newProjectBtn =
+    let newProjectBtn =
         document.getElementById(
             "newProjectBtn"
         );
 
 
-    if (newProjectBtn) {
+    /*
+       Current HTML does not contain
+       this button initially.
 
-        /*
-           Move the existing button into
-           the project switcher only once.
-        */
+       Create it automatically if needed.
+    */
 
-        if (
-            newProjectBtn.parentElement !==
-            projectSwitcher
-        ) {
+    if (!newProjectBtn) {
 
-            projectSwitcher.appendChild(
-                newProjectBtn
+        newProjectBtn =
+            document.createElement(
+                "button"
             );
 
-        } else {
+        newProjectBtn.type =
+            "button";
 
-            projectSwitcher.appendChild(
-                newProjectBtn
-            );
-        }
+        newProjectBtn.id =
+            "newProjectBtn";
+
+        newProjectBtn.className =
+            "project-item new-project-btn";
+
+        newProjectBtn.textContent =
+            "+ New Project";
+
+    }
+
+
+    if (
+        newProjectBtn.parentElement !==
+        projectSwitcher
+    ) {
+
+        projectSwitcher.appendChild(
+            newProjectBtn
+        );
+
     }
 
 }
@@ -230,28 +233,30 @@ export function renderProjects(
    RENDER KANBAN BOARD
 ========================= */
 
-export function renderBoard(tasks = []) {
+export function renderBoard(
+    tasks = []
+) {
 
     const columns = {
 
         "To Do":
             document.getElementById(
-                "todoColumn"
+                "todoTasks"
             ),
 
         "In Progress":
             document.getElementById(
-                "inProgressColumn"
+                "inProgressTasks"
             ),
 
         "In Review":
             document.getElementById(
-                "inReviewColumn"
+                "inReviewTasks"
             ),
 
         "Done":
             document.getElementById(
-                "doneColumn"
+                "doneTasks"
             )
 
     };
@@ -282,53 +287,35 @@ export function renderBoard(tasks = []) {
     };
 
 
-    /* =========================
-       CLEAR COLUMNS
-    ========================= */
-
     Object.values(columns).forEach(
         column => {
 
             if (column) {
-
                 column.innerHTML = "";
-
             }
 
         }
     );
 
-
-    /* =========================
-       RESET COUNTS
-    ========================= */
 
     Object.values(counts).forEach(
         count => {
 
             if (count) {
-
                 count.textContent = "0";
-
             }
 
         }
     );
 
-
-    /* =========================
-       ADD TASKS TO COLUMNS
-    ========================= */
 
     tasks.forEach(task => {
 
         const status =
             task.status || "To Do";
 
-
         const column =
             columns[status];
-
 
         if (!column) {
             return;
@@ -336,20 +323,15 @@ export function renderBoard(tasks = []) {
 
 
         const card =
-            document.createElement(
-                "div"
-            );
-
+            document.createElement("div");
 
         card.className =
             "kanban-task";
-
 
         card.setAttribute(
             "draggable",
             "true"
         );
-
 
         card.dataset.taskId =
             task.id;
@@ -361,10 +343,8 @@ export function renderBoard(tasks = []) {
         const category =
             task.category || "Work";
 
-
         const categoryClass =
-            String(category)
-                .toLowerCase();
+            String(category).toLowerCase();
 
 
         card.innerHTML = `
@@ -398,10 +378,6 @@ export function renderBoard(tasks = []) {
 
     });
 
-
-    /* =========================
-       UPDATE COLUMN COUNTS
-    ========================= */
 
     Object.keys(columns).forEach(
         status => {
@@ -476,10 +452,6 @@ export function renderTaskDetail(task) {
         );
 
 
-    /* =========================
-       TITLE
-    ========================= */
-
     if (title) {
 
         title.textContent =
@@ -488,16 +460,7 @@ export function renderTaskDetail(task) {
     }
 
 
-    /* =========================
-       DESCRIPTION
-    ========================= */
-
     if (description) {
-
-        /*
-           textarea/input → value
-           normal text element → textContent
-        */
 
         if (
             "value" in description
@@ -517,10 +480,6 @@ export function renderTaskDetail(task) {
     }
 
 
-    /* =========================
-       STATUS
-    ========================= */
-
     if (status) {
 
         status.value =
@@ -528,10 +487,6 @@ export function renderTaskDetail(task) {
 
     }
 
-
-    /* =========================
-       PRIORITY
-    ========================= */
 
     if (priority) {
 
@@ -541,10 +496,6 @@ export function renderTaskDetail(task) {
     }
 
 
-    /* =========================
-       DUE DATE
-    ========================= */
-
     if (dueDate) {
 
         dueDate.value =
@@ -553,18 +504,7 @@ export function renderTaskDetail(task) {
     }
 
 
-    /* =========================
-       CATEGORY
-    ========================= */
-
     if (category) {
-
-        /*
-           If category is a select/input,
-           use value.
-
-           Otherwise use textContent.
-        */
 
         if (
             "value" in category
@@ -582,10 +522,6 @@ export function renderTaskDetail(task) {
 
     }
 
-
-    /* =========================
-       NOTES
-    ========================= */
 
     if (notes) {
 
@@ -624,9 +560,7 @@ export function renderSubtasks(
     ) {
 
         const emptyMessage =
-            document.createElement(
-                "p"
-            );
+            document.createElement("p");
 
         emptyMessage.className =
             "subtask-empty";
@@ -647,20 +581,14 @@ export function renderSubtasks(
         subtask => {
 
             const item =
-                document.createElement(
-                    "div"
-                );
+                document.createElement("div");
 
             item.className =
                 "subtask-item";
 
 
-            /* CHECKBOX */
-
             const checkbox =
-                document.createElement(
-                    "input"
-                );
+                document.createElement("input");
 
             checkbox.type =
                 "checkbox";
@@ -675,12 +603,8 @@ export function renderSubtasks(
                 Boolean(subtask.done);
 
 
-            /* LABEL */
-
             const label =
-                document.createElement(
-                    "label"
-                );
+                document.createElement("label");
 
             label.textContent =
                 subtask.text || "";
@@ -695,12 +619,8 @@ export function renderSubtasks(
             }
 
 
-            /* DELETE BUTTON */
-
             const deleteButton =
-                document.createElement(
-                    "button"
-                );
+                document.createElement("button");
 
             deleteButton.type =
                 "button";
@@ -714,8 +634,6 @@ export function renderSubtasks(
             deleteButton.textContent =
                 "Delete";
 
-
-            /* APPEND */
 
             item.appendChild(
                 checkbox
@@ -775,10 +693,6 @@ export function renderProgress(
     }
 
 
-    /* =========================
-       TASK COUNTS
-    ========================= */
-
     const totalTasks =
         projectTasks.length;
 
@@ -790,10 +704,6 @@ export function renderProgress(
         ).length;
 
 
-    /* =========================
-       PROJECT NAME
-    ========================= */
-
     if (activeProjectName) {
 
         activeProjectName.textContent =
@@ -802,10 +712,6 @@ export function renderProgress(
     }
 
 
-    /* =========================
-       PROGRESS TEXT
-    ========================= */
-
     if (progressText) {
 
         progressText.textContent =
@@ -813,10 +719,6 @@ export function renderProgress(
 
     }
 
-
-    /* =========================
-       PERCENTAGE
-    ========================= */
 
     const percentage =
         totalTasks === 0
@@ -828,10 +730,6 @@ export function renderProgress(
                 ) * 100
             );
 
-
-    /* =========================
-       PROGRESS BAR
-    ========================= */
 
     if (progressBar) {
 
@@ -853,6 +751,429 @@ export function renderProgress(
 }
 
 
+/* =====================================================
+   ADMIN DASHBOARD - USER LIST
+===================================================== */
+
+export function renderAdminUsers(
+    users = [],
+    userStats = []
+) {
+
+    const container =
+        document.getElementById(
+            "adminUsersList"
+        );
+
+    if (!container) {
+        return;
+    }
+
+
+    container.innerHTML = "";
+
+
+    if (
+        !Array.isArray(users) ||
+        users.length === 0
+    ) {
+
+        const empty =
+            document.createElement("div");
+
+        empty.className =
+            "admin-empty-state";
+
+        empty.textContent =
+            "No registered users yet.";
+
+        container.appendChild(
+            empty
+        );
+
+        return;
+    }
+
+
+    users.forEach(user => {
+
+        const stats =
+            userStats.find(
+                item =>
+                    item.userId ===
+                    user.id
+            ) || {
+
+                total: 0,
+                active: 0,
+                completed: 0
+
+            };
+
+
+        const card =
+            document.createElement("div");
+
+        card.className =
+            "admin-user-card";
+
+
+        const avatar =
+            document.createElement("div");
+
+        avatar.className =
+            "admin-user-avatar";
+
+        avatar.textContent =
+            String(
+                user.name || "U"
+            )
+                .charAt(0)
+                .toUpperCase();
+
+
+        const info =
+            document.createElement("div");
+
+        info.className =
+            "admin-user-info";
+
+
+        const name =
+            document.createElement("strong");
+
+        name.textContent =
+            user.name || "Unnamed User";
+
+
+        const email =
+            document.createElement("span");
+
+        email.textContent =
+            user.email || "";
+
+
+        info.appendChild(name);
+        info.appendChild(email);
+
+
+        const statsBox =
+            document.createElement("div");
+
+        statsBox.className =
+            "admin-user-stats";
+
+
+        statsBox.innerHTML = `
+
+            <div>
+                <strong>${stats.total}</strong>
+                <span>Total</span>
+            </div>
+
+            <div>
+                <strong>${stats.active}</strong>
+                <span>Active</span>
+            </div>
+
+            <div>
+                <strong>${stats.completed}</strong>
+                <span>Done</span>
+            </div>
+
+        `;
+
+
+        card.appendChild(avatar);
+        card.appendChild(info);
+        card.appendChild(statsBox);
+
+
+        container.appendChild(card);
+
+    });
+
+}
+
+
+/* =====================================================
+   ADMIN DASHBOARD - REPORTS
+===================================================== */
+
+export function renderAdminReports(
+    users = [],
+    userStats = []
+) {
+
+    const container =
+        document.getElementById(
+            "adminReportsList"
+        );
+
+    if (!container) {
+        return;
+    }
+
+
+    container.innerHTML = "";
+
+
+    if (
+        !Array.isArray(users) ||
+        users.length === 0
+    ) {
+
+        const empty =
+            document.createElement("div");
+
+        empty.className =
+            "admin-empty-state";
+
+        empty.textContent =
+            "No user report data available.";
+
+        container.appendChild(
+            empty
+        );
+
+        return;
+
+    }
+
+
+    users.forEach(user => {
+
+        const stats =
+            userStats.find(
+                item =>
+                    item.userId ===
+                    user.id
+            ) || {
+
+                total: 0,
+                todo: 0,
+                inProgress: 0,
+                inReview: 0,
+                completed: 0
+
+            };
+
+
+        const percentage =
+            stats.total === 0
+                ? 0
+                : Math.round(
+                    (
+                        stats.completed /
+                        stats.total
+                    ) * 100
+                );
+
+
+        const report =
+            document.createElement("div");
+
+        report.className =
+            "admin-report-card";
+
+
+        report.innerHTML = `
+
+            <div class="admin-report-header">
+
+                <div>
+
+                    <strong>
+                        ${escapeHTML(
+                            user.name || "Unnamed User"
+                        )}
+                    </strong>
+
+                    <span>
+                        ${escapeHTML(
+                            user.email || ""
+                        )}
+                    </span>
+
+                </div>
+
+                <strong class="admin-report-percentage">
+                    ${percentage}%
+                </strong>
+
+            </div>
+
+
+            <div class="admin-report-progress">
+
+                <div
+                    class="admin-report-progress-fill"
+                    style="width: ${percentage}%"
+                ></div>
+
+            </div>
+
+
+            <div class="admin-report-status">
+
+                <span>
+                    To Do:
+                    <strong>
+                        ${stats.todo}
+                    </strong>
+                </span>
+
+                <span>
+                    In Progress:
+                    <strong>
+                        ${stats.inProgress}
+                    </strong>
+                </span>
+
+                <span>
+                    In Review:
+                    <strong>
+                        ${stats.inReview}
+                    </strong>
+                </span>
+
+                <span>
+                    Done:
+                    <strong>
+                        ${stats.completed}
+                    </strong>
+                </span>
+
+            </div>
+
+        `;
+
+
+        container.appendChild(
+            report
+        );
+
+    });
+
+}
+
+
+/* =====================================================
+   ADMIN SUMMARY
+===================================================== */
+
+export function renderAdminSummary(
+    summary = {}
+) {
+
+    const totalUsers =
+        document.getElementById(
+            "adminTotalUsers"
+        );
+
+    const totalTasks =
+        document.getElementById(
+            "adminTotalTasks"
+        );
+
+    const pendingTasks =
+        document.getElementById(
+            "adminPendingTasks"
+        );
+
+    const completedTasks =
+        document.getElementById(
+            "adminCompletedTasks"
+        );
+
+
+    const todoTasks =
+        document.getElementById(
+            "adminTodoTasks"
+        );
+
+    const inProgressTasks =
+        document.getElementById(
+            "adminInProgressTasks"
+        );
+
+    const inReviewTasks =
+        document.getElementById(
+            "adminInReviewTasks"
+        );
+
+    const doneTasks =
+        document.getElementById(
+            "adminDoneTasks"
+        );
+
+
+    if (totalUsers) {
+
+        totalUsers.textContent =
+            summary.totalUsers || 0;
+
+    }
+
+
+    if (totalTasks) {
+
+        totalTasks.textContent =
+            summary.totalTasks || 0;
+
+    }
+
+
+    if (pendingTasks) {
+
+        pendingTasks.textContent =
+            summary.pendingTasks || 0;
+
+    }
+
+
+    if (completedTasks) {
+
+        completedTasks.textContent =
+            summary.completedTasks || 0;
+
+    }
+
+
+    if (todoTasks) {
+
+        todoTasks.textContent =
+            summary.todo || 0;
+
+    }
+
+
+    if (inProgressTasks) {
+
+        inProgressTasks.textContent =
+            summary.inProgress || 0;
+
+    }
+
+
+    if (inReviewTasks) {
+
+        inReviewTasks.textContent =
+            summary.inReview || 0;
+
+    }
+
+
+    if (doneTasks) {
+
+        doneTasks.textContent =
+            summary.completedTasks || 0;
+
+    }
+
+}
+
+
 /* =========================
    ESCAPE HTML
 ========================= */
@@ -860,9 +1181,7 @@ export function renderProgress(
 function escapeHTML(text) {
 
     const div =
-        document.createElement(
-            "div"
-        );
+        document.createElement("div");
 
     div.textContent =
         String(text ?? "");
@@ -870,4 +1189,3 @@ function escapeHTML(text) {
     return div.innerHTML;
 
 }
-
