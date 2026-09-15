@@ -759,3 +759,278 @@ if (logoutBtn) {
     );
 
 }
+/* =====================================================
+   ADMIN DASHBOARD
+===================================================== */
+
+function getAdminData() {
+
+    const users =
+        getAllRegularUsers();
+
+
+    const userStats = [];
+
+
+    let totalTasks = 0;
+    let pendingTasks = 0;
+    let completedTasks = 0;
+
+    let todo = 0;
+    let inProgress = 0;
+    let inReview = 0;
+
+
+    users.forEach(user => {
+
+        const userTasks =
+            loadUserTasksForAdmin(
+                user.id
+            );
+
+
+        const userTodo =
+            userTasks.filter(
+                task =>
+                    (task.status || "To Do") ===
+                    "To Do"
+            ).length;
+
+
+        const userInProgress =
+            userTasks.filter(
+                task =>
+                    task.status ===
+                    "In Progress"
+            ).length;
+
+
+        const userInReview =
+            userTasks.filter(
+                task =>
+                    task.status ===
+                    "In Review"
+            ).length;
+
+
+        const userCompleted =
+            userTasks.filter(
+                task =>
+                    task.status ===
+                    "Done"
+            ).length;
+
+
+        const userTotal =
+            userTasks.length;
+
+
+        const userActive =
+            userTotal -
+            userCompleted;
+
+
+        totalTasks +=
+            userTotal;
+
+        completedTasks +=
+            userCompleted;
+
+        pendingTasks +=
+            userActive;
+
+        todo +=
+            userTodo;
+
+        inProgress +=
+            userInProgress;
+
+        inReview +=
+            userInReview;
+
+
+        userStats.push({
+
+            userId:
+                user.id,
+
+            total:
+                userTotal,
+
+            active:
+                userActive,
+
+            completed:
+                userCompleted,
+
+            todo:
+                userTodo,
+
+            inProgress:
+                userInProgress,
+
+            inReview:
+                userInReview
+
+        });
+
+    });
+
+
+    return {
+
+        users,
+
+        userStats,
+
+        summary: {
+
+            totalUsers:
+                users.length,
+
+            totalTasks:
+                totalTasks,
+
+            pendingTasks:
+                pendingTasks,
+
+            completedTasks:
+                completedTasks,
+
+            todo:
+                todo,
+
+            inProgress:
+                inProgress,
+
+            inReview:
+                inReview
+
+        }
+
+    };
+
+}
+
+
+/* =====================================================
+   UPDATE ADMIN DASHBOARD
+===================================================== */
+
+function updateAdminDashboard() {
+
+    if (
+        !currentUser ||
+        !isAdmin(currentUser)
+    ) {
+
+        return;
+
+    }
+
+
+    const data =
+        getAdminData();
+
+
+    /* =========================
+       SUMMARY
+    ========================= */
+
+    renderAdminSummary(
+        data.summary
+    );
+
+
+    /* =========================
+       USERS
+    ========================= */
+
+    renderAdminUsers(
+        data.users,
+        data.userStats
+    );
+
+
+    /* =========================
+       REPORTS
+    ========================= */
+
+    renderAdminReports(
+        data.users,
+        data.userStats
+    );
+
+
+    /* =========================
+       USER DROPDOWN
+    ========================= */
+
+    if (adminUserSelect) {
+
+        const currentValue =
+            adminUserSelect.value;
+
+
+        adminUserSelect.innerHTML = `
+            <option value="">
+                Select User
+            </option>
+        `;
+
+
+        data.users.forEach(user => {
+
+            const option =
+                document.createElement(
+                    "option"
+                );
+
+            option.value =
+                user.id;
+
+            option.textContent =
+                `${user.name} (${user.email})`;
+
+
+            adminUserSelect.appendChild(
+                option
+            );
+
+        });
+
+
+        if (
+            data.users.some(
+                user =>
+                    user.id ===
+                    currentValue
+            )
+        ) {
+
+            adminUserSelect.value =
+                currentValue;
+
+        }
+
+    }
+
+}
+
+
+/* =====================================================
+   REFRESH ADMIN REPORTS
+===================================================== */
+
+if (refreshAdminReportsBtn) {
+
+    refreshAdminReportsBtn.addEventListener(
+        "click",
+        () => {
+
+            updateAdminDashboard();
+
+        }
+    );
+
+}
