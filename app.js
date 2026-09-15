@@ -1212,3 +1212,34 @@ if (adminAssignTaskForm) {
     );
 
 }
+/* =====================================================
+   ADMIN - OPEN TASK MANAGER
+===================================================== */
+
+if (adminOpenTaskManagerBtn) {
+
+    adminOpenTaskManagerBtn.addEventListener(
+        "click",
+        () => {
+
+            if (
+                !currentUser ||
+                !isAdmin(currentUser)
+            ) {
+                return;
+            }
+
+
+            if (adminDashboard) {
+                adminDashboard.hidden = true;
+            }
+
+
+            if (userTaskManager) {
+                userTaskManager.hidden = false;
+            }
+
+        }
+    );
+
+}
