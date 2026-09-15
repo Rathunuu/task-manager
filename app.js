@@ -25,9 +25,6 @@ import {
     renderTasks,
     renderProjects,
     renderBoard,
-    renderTaskDetail,
-    renderSubtasks,
-    renderProgress,
     renderAdminUsers,
     renderAdminReports,
     renderAdminSummary
