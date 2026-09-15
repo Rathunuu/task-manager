@@ -70,32 +70,4 @@ export function loadTasks(username) {
         const tasks = JSON.parse(storedTasks);
         return Array.isArray(tasks) ? tasks : [];
     } catch (error) {
-        console.error("Could not load tasks:", error);
-        return [];
-    }
-}
-
-export function saveTasks(username, tasks) {
-    localStorage.setItem(tasksKey(username), JSON.stringify(tasks));
-}
-
-
-/* =========================
-   PROJECT STORAGE (per-user)
-========================= */
-
-export function loadProjects(username) {
-    const storedProjects = localStorage.getItem(projectsKey(username));
-    if (!storedProjects) return [];
-    try {
-        const projects = JSON.parse(storedProjects);
-        return Array.isArray(projects) ? projects : [];
-    } catch (error) {
-        console.error("Could not load projects:", error);
-        return [];
-    }
-}
-
-export function saveProjects(username, projects) {
-    localStorage.setItem(projectsKey(username), JSON.stringify(projects));
-}
+        console.error("Could not load tasks:",
