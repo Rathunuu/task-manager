@@ -2287,3 +2287,55 @@ document.addEventListener(
 
     }
 );
+/* =====================================================
+   KEYBOARD SHORTCUTS
+===================================================== */
+
+document.addEventListener(
+    "keydown",
+    event => {
+
+        /* N = NEW TASK */
+
+        if (
+            event.key.toLowerCase() === "n" &&
+            event.target.tagName !== "INPUT" &&
+            event.target.tagName !== "TEXTAREA" &&
+            event.target.tagName !== "SELECT"
+        ) {
+
+            event.preventDefault();
+
+            if (taskInput) {
+                taskInput.focus();
+            }
+
+        }
+
+
+        /* ESCAPE = CLEAR SEARCH / CLOSE MODALS */
+
+        if (event.key === "Escape") {
+
+            if (searchInput) {
+                searchInput.value = "";
+            }
+
+            searchText = "";
+
+            if (projectModal) {
+                projectModal.hidden = true;
+            }
+
+            if (taskDetailModal) {
+                taskDetailModal.hidden = true;
+            }
+
+            activeDetailTaskId = null;
+
+            updateTaskDisplay();
+
+        }
+
+    }
+);
