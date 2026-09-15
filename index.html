@@ -12,7 +12,194 @@
 
 <body>
 
-    <div class="app-container">
+    <!-- =========================
+         AUTH SCREEN
+    ========================== -->
+
+    <div id="authScreen" class="auth-screen">
+
+        <div class="auth-card">
+
+            <div class="auth-header">
+                <div class="eyebrow">WELCOME</div>
+
+                <h1>Task Manager</h1>
+
+                <p id="authSubtitle">
+                    Login to manage your tasks
+                </p>
+            </div>
+
+
+            <!-- LOGIN FORM -->
+
+            <form id="loginForm" class="auth-form">
+
+                <div class="input-group">
+
+                    <label for="loginEmail">
+                        Email
+                    </label>
+
+                    <input
+                        type="email"
+                        id="loginEmail"
+                        placeholder="Enter your email"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="input-group">
+
+                    <label for="loginPassword">
+                        Password
+                    </label>
+
+                    <input
+                        type="password"
+                        id="loginPassword"
+                        placeholder="Enter your password"
+                        required
+                    >
+
+                </div>
+
+
+                <button
+                    type="submit"
+                    class="primary-btn auth-btn"
+                >
+                    Login
+                </button>
+
+
+                <p
+                    id="loginError"
+                    class="auth-message error-message"
+                ></p>
+
+
+                <p class="auth-switch">
+
+                    Don't have an account?
+
+                    <button
+                        type="button"
+                        id="showRegisterBtn"
+                        class="text-btn"
+                    >
+                        Register
+                    </button>
+
+                </p>
+
+            </form>
+
+
+
+            <!-- REGISTER FORM -->
+
+            <form
+                id="registerForm"
+                class="auth-form"
+                hidden
+            >
+
+                <div class="input-group">
+
+                    <label for="registerName">
+                        Name
+                    </label>
+
+                    <input
+                        type="text"
+                        id="registerName"
+                        placeholder="Enter your name"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="input-group">
+
+                    <label for="registerEmail">
+                        Email
+                    </label>
+
+                    <input
+                        type="email"
+                        id="registerEmail"
+                        placeholder="Enter your email"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="input-group">
+
+                    <label for="registerPassword">
+                        Password
+                    </label>
+
+                    <input
+                        type="password"
+                        id="registerPassword"
+                        placeholder="Create a password"
+                        required
+                    >
+
+                </div>
+
+
+                <button
+                    type="submit"
+                    class="primary-btn auth-btn"
+                >
+                    Create Account
+                </button>
+
+
+                <p
+                    id="registerError"
+                    class="auth-message error-message"
+                ></p>
+
+
+                <p class="auth-switch">
+
+                    Already have an account?
+
+                    <button
+                        type="button"
+                        id="showLoginBtn"
+                        class="text-btn"
+                    >
+                        Login
+                    </button>
+
+                </p>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- =========================
+         MAIN APP
+    ========================== -->
+
+    <div
+        id="appScreen"
+        class="app-container"
+        hidden
+    >
 
         <!-- =========================
              HEADER
@@ -21,103 +208,99 @@
         <header class="app-header">
 
             <div>
-                <span class="eyebrow">PRODUCTIVITY</span>
 
-                <h1>Task Manager</h1>
+                <div class="eyebrow">
+                    TASK MANAGEMENT
+                </div>
 
-                <p>
-                    Organize your work. Stay focused.
+                <h1>
+                    Task Manager
+                </h1>
+
+                <p id="welcomeMessage">
+                    Manage your work and personal tasks.
                 </p>
+
             </div>
 
-            <div class="task-count">
 
-                <span id="taskCount">0</span>
+            <div class="header-actions">
 
-                <small>Tasks</small>
+                <div class="task-count">
+
+                    <span id="taskCount">
+                        0
+                    </span>
+
+                    <small>
+                        Tasks
+                    </small>
+
+                </div>
+
+
+                <button
+                    id="logoutBtn"
+                    class="secondary-btn logout-btn"
+                    type="button"
+                >
+                    Logout
+                </button>
 
             </div>
 
         </header>
 
 
+
         <!-- =========================
-             PROJECT SWITCHER
+             PROJECTS
         ========================== -->
 
         <section class="projects-card">
 
-            <div class="section-heading">
+            <div class="projects-header">
 
-                <div>
-                    <span class="eyebrow">PROJECTS</span>
+                <h2>
+                    Your Projects
+                </h2>
 
-                    <h2>Your Projects</h2>
-
-                    <p>
-                        Switch between projects and manage their tasks.
-                    </p>
-                </div>
-
-                <button
-                    id="newProjectBtn"
-                    class="secondary-btn"
-                    type="button"
-                >
-                    + New Project
-                </button>
-
-            </div>
-
-
-            <div
-                id="projectSwitcher"
-                class="project-switcher"
-            >
-                <!-- Projects will be rendered here by JavaScript -->
-            </div>
-
-        </section>
-
-
-        <!-- =========================
-             PROJECT PROGRESS
-        ========================== -->
-
-        <section class="progress-card">
-
-            <div class="progress-header">
-
-                <div>
-                    <span class="eyebrow">PROJECT PROGRESS</span>
-
-                    <h3 id="activeProjectName">
-                        Current Project
-                    </h3>
-                </div>
-
-                <strong id="progressText">
-                    0 of 0 tasks done
-                </strong>
-
-            </div>
-
-
-            <div
-                class="progress-bar"
-                role="progressbar"
-                aria-valuemin="0"
-                aria-valuemax="100"
-                aria-valuenow="0"
-                id="progressBar"
-            >
                 <div
-                    id="progressFill"
-                    class="progress-fill"
+                    id="projectSwitcher"
+                    class="project-switcher"
                 ></div>
+
+            </div>
+
+
+            <div class="project-progress">
+
+                <div class="progress-info">
+
+                    <span id="activeProjectName">
+                        No project
+                    </span>
+
+                    <span id="progressText">
+                        0 of 0 tasks done
+                    </span>
+
+                </div>
+
+
+                <div class="progress-bar">
+
+                    <div
+                        id="progressFill"
+                        class="progress-fill"
+                    ></div>
+
+                </div>
+
             </div>
 
         </section>
+
 
 
         <!-- =========================
@@ -129,20 +312,19 @@
             <div class="input-group">
 
                 <label for="taskInput">
-                    New task
+                    Task
                 </label>
 
                 <input
                     type="text"
                     id="taskInput"
                     placeholder="What needs to be done?"
-                    autocomplete="off"
                 >
 
             </div>
 
 
-            <div class="input-group category-group">
+            <div class="input-group">
 
                 <label for="categorySelect">
                     Category
@@ -166,8 +348,6 @@
 
             </div>
 
-
-            <!-- Week 3 Status -->
 
             <div class="input-group">
 
@@ -204,7 +384,9 @@
                 type="button"
             >
 
-                <span>+</span>
+                <span>
+                    +
+                </span>
 
                 Add Task
 
@@ -213,20 +395,16 @@
         </section>
 
 
+
         <!-- =========================
-             SEARCH + FILTERS + VIEW
+             CONTROLS
         ========================== -->
 
         <section class="controls-card">
 
-            <!-- Search -->
-
             <div class="search-box">
 
-                <span
-                    class="search-icon"
-                    aria-hidden="true"
-                >
+                <span class="search-icon">
                     ⌕
                 </span>
 
@@ -234,17 +412,14 @@
                     type="text"
                     id="searchInput"
                     placeholder="Search tasks..."
-                    autocomplete="off"
                 >
 
             </div>
 
 
-            <!-- Category Filters -->
-
             <div
-                class="filter-row"
                 id="categoryFilters"
+                class="filter-row"
             >
 
                 <button
@@ -282,12 +457,10 @@
             </div>
 
 
-            <!-- Sort -->
-
             <div class="sort-box">
 
                 <label for="sortSelect">
-                    Sort by
+                    Sort
                 </label>
 
                 <select id="sortSelect">
@@ -296,8 +469,16 @@
                         Newest
                     </option>
 
+                    <option value="oldest">
+                        Oldest
+                    </option>
+
                     <option value="az">
-                        A → Z
+                        A - Z
+                    </option>
+
+                    <option value="za">
+                        Z - A
                     </option>
 
                 </select>
@@ -305,17 +486,11 @@
             </div>
 
 
-            <!-- List / Board Toggle -->
-
-            <div
-                class="view-toggle"
-                id="viewToggle"
-            >
+            <div class="view-toggle">
 
                 <button
                     id="listViewBtn"
-                    class="view-btn active"
-                    data-view="list"
+                    class="active"
                     type="button"
                 >
                     List
@@ -323,8 +498,6 @@
 
                 <button
                     id="boardViewBtn"
-                    class="view-btn"
-                    data-view="board"
                     type="button"
                 >
                     Board
@@ -333,6 +506,7 @@
             </div>
 
         </section>
+
 
 
         <!-- =========================
@@ -348,14 +522,12 @@
 
                 <div>
 
-                    <span class="eyebrow">
-                        TASKS
-                    </span>
+                    <h2>
+                        Your Tasks
+                    </h2>
 
-                    <h2>Your Tasks</h2>
-
-                    <p id="listViewDescription">
-                        Drag tasks to change their order.
+                    <p>
+                        Drag tasks to reorder them.
                     </p>
 
                 </div>
@@ -380,7 +552,7 @@
                 </h3>
 
                 <p>
-                    Add a new task or change your search/filter.
+                    Add a task or change your filters.
                 </p>
 
             </div>
@@ -388,188 +560,142 @@
         </section>
 
 
+
         <!-- =========================
-             KANBAN BOARD VIEW
+             KANBAN BOARD
         ========================== -->
 
         <section
             id="boardView"
-            class="board-section"
+            class="board-view"
             hidden
         >
 
-            <div class="section-heading">
-
-                <div>
-
-                    <span class="eyebrow">
-                        KANBAN BOARD
-                    </span>
-
-                    <h2>
-                        Project Board
-                    </h2>
-
-                    <p>
-                        Drag tasks between columns to update their status.
-                    </p>
-
-                </div>
-
-            </div>
-
-
             <div class="kanban-board">
-
 
                 <!-- TO DO -->
 
                 <div
                     class="kanban-column"
+                    id="todoColumn"
                     data-status="To Do"
                 >
 
                     <div class="kanban-column-header">
 
-                        <div>
+                        <h3>
+                            To Do
+                        </h3>
 
-                            <h3>
-                                To Do
-                            </h3>
-
-                            <span
-                                id="todoCount"
-                                class="column-count"
-                            >
-                                0
-                            </span>
-
-                        </div>
+                        <span
+                            id="todoCount"
+                            class="kanban-count"
+                        >
+                            0
+                        </span>
 
                     </div>
-
 
                     <div
-                        id="todoColumn"
+                        id="todoTasks"
                         class="kanban-tasks"
-                        data-status="To Do"
-                    >
-                        <!-- Tasks rendered here -->
-                    </div>
+                    ></div>
 
                 </div>
+
 
 
                 <!-- IN PROGRESS -->
 
                 <div
                     class="kanban-column"
+                    id="inProgressColumn"
                     data-status="In Progress"
                 >
 
                     <div class="kanban-column-header">
 
-                        <div>
+                        <h3>
+                            In Progress
+                        </h3>
 
-                            <h3>
-                                In Progress
-                            </h3>
-
-                            <span
-                                id="inProgressCount"
-                                class="column-count"
-                            >
-                                0
-                            </span>
-
-                        </div>
+                        <span
+                            id="inProgressCount"
+                            class="kanban-count"
+                        >
+                            0
+                        </span>
 
                     </div>
-
 
                     <div
-                        id="inProgressColumn"
+                        id="inProgressTasks"
                         class="kanban-tasks"
-                        data-status="In Progress"
-                    >
-                        <!-- Tasks rendered here -->
-                    </div>
+                    ></div>
 
                 </div>
+
 
 
                 <!-- IN REVIEW -->
 
                 <div
                     class="kanban-column"
+                    id="inReviewColumn"
                     data-status="In Review"
                 >
 
                     <div class="kanban-column-header">
 
-                        <div>
+                        <h3>
+                            In Review
+                        </h3>
 
-                            <h3>
-                                In Review
-                            </h3>
-
-                            <span
-                                id="inReviewCount"
-                                class="column-count"
-                            >
-                                0
-                            </span>
-
-                        </div>
+                        <span
+                            id="inReviewCount"
+                            class="kanban-count"
+                        >
+                            0
+                        </span>
 
                     </div>
-
 
                     <div
-                        id="inReviewColumn"
+                        id="inReviewTasks"
                         class="kanban-tasks"
-                        data-status="In Review"
-                    >
-                        <!-- Tasks rendered here -->
-                    </div>
+                    ></div>
 
                 </div>
+
 
 
                 <!-- DONE -->
 
                 <div
                     class="kanban-column"
+                    id="doneColumn"
                     data-status="Done"
                 >
 
                     <div class="kanban-column-header">
 
-                        <div>
+                        <h3>
+                            Done
+                        </h3>
 
-                            <h3>
-                                Done
-                            </h3>
-
-                            <span
-                                id="doneCount"
-                                class="column-count"
-                            >
-                                0
-                            </span>
-
-                        </div>
+                        <span
+                            id="doneCount"
+                            class="kanban-count"
+                        >
+                            0
+                        </span>
 
                     </div>
-
 
                     <div
-                        id="doneColumn"
+                        id="doneTasks"
                         class="kanban-tasks"
-                        data-status="Done"
-                    >
-                        <!-- Tasks rendered here -->
-                    </div>
+                    ></div>
 
                 </div>
 
@@ -578,35 +704,23 @@
         </section>
 
 
+
         <!-- =========================
              TASK DETAIL DIALOG
         ========================== -->
 
-        <dialog
-            id="taskDetailDialog"
-            class="task-detail-dialog"
-        >
+        <dialog id="taskDetailDialog">
 
             <div class="dialog-header">
 
-                <div>
-
-                    <span class="eyebrow">
-                        TASK DETAILS
-                    </span>
-
-                    <h2 id="detailTaskTitle">
-                        Task Details
-                    </h2>
-
-                </div>
-
+                <h2 id="detailTaskTitle">
+                    Task Details
+                </h2>
 
                 <button
-                    id="closeDetailBtn"
+                    id="closeTaskDetailBtn"
                     class="close-btn"
                     type="button"
-                    aria-label="Close task details"
                 >
                     ×
                 </button>
@@ -614,188 +728,163 @@
             </div>
 
 
-            <!-- Task information -->
+            <div class="detail-body">
 
-            <div class="task-detail-info">
-
-                <div class="detail-field">
-
-                    <span>
-                        Description
-                    </span>
-
-                    <p id="detailDescription">
-                        No description available.
-                    </p>
-
-                </div>
+                <div
+                    id="detailDescription"
+                    class="detail-description"
+                ></div>
 
 
                 <div class="detail-grid">
 
                     <div class="detail-field">
 
-                        <span>
+                        <label>
                             Status
-                        </span>
+                        </label>
 
-                        <strong id="detailStatus">
-                            To Do
-                        </strong>
+                        <span id="detailStatus"></span>
 
                     </div>
 
 
                     <div class="detail-field">
 
-                        <span>
+                        <label>
                             Priority
-                        </span>
+                        </label>
 
-                        <strong id="detailPriority">
-                            Normal
-                        </strong>
+                        <span id="detailPriority"></span>
 
                     </div>
 
 
                     <div class="detail-field">
 
-                        <span>
-                            Due date
-                        </span>
+                        <label>
+                            Due Date
+                        </label>
 
-                        <strong id="detailDueDate">
-                            No due date
-                        </strong>
+                        <span id="detailDueDate"></span>
 
                     </div>
 
 
                     <div class="detail-field">
 
-                        <span>
+                        <label>
                             Category
-                        </span>
+                        </label>
 
-                        <strong id="detailCategory">
-                            Work
-                        </strong>
+                        <span id="detailCategory"></span>
 
                     </div>
 
                 </div>
 
-            </div>
 
 
-            <!-- Notes -->
+                <!-- NOTES -->
 
-            <div class="detail-section">
+                <div class="detail-section">
 
-                <label for="taskNotes">
-                    Notes
-                </label>
+                    <div class="detail-section-header">
 
-                <textarea
-                    id="taskNotes"
-                    rows="5"
-                    placeholder="Add notes for this task..."
-                ></textarea>
+                        <h3>
+                            Notes
+                        </h3>
 
-                <button
-                    id="saveNotesBtn"
-                    class="secondary-btn"
-                    type="button"
-                >
-                    Save Notes
-                </button>
+                        <button
+                            id="saveNotesBtn"
+                            class="secondary-btn"
+                            type="button"
+                        >
+                            Save Notes
+                        </button>
 
-            </div>
+                    </div>
+
+                    <textarea
+                        id="taskNotes"
+                        placeholder="Add notes..."
+                    ></textarea>
+
+                </div>
 
 
-            <!-- Subtasks -->
 
-            <div class="detail-section">
+                <!-- SUBTASKS -->
 
-                <div class="subtask-header">
+                <div class="detail-section">
 
-                    <div>
+                    <div class="detail-section-header">
 
                         <h3>
                             Subtasks
                         </h3>
 
-                        <p>
-                            Break this task into smaller steps.
-                        </p>
+                    </div>
+
+
+                    <div class="subtask-add">
+
+                        <input
+                            type="text"
+                            id="subtaskInput"
+                            placeholder="Add a subtask..."
+                        >
+
+                        <button
+                            id="addSubtaskBtn"
+                            class="secondary-btn"
+                            type="button"
+                        >
+                            Add
+                        </button>
 
                     </div>
 
-                </div>
 
-
-                <div class="subtask-add">
-
-                    <input
-                        type="text"
-                        id="subtaskInput"
-                        placeholder="Add a subtask..."
-                        autocomplete="off"
-                    >
-
-                    <button
-                        id="addSubtaskBtn"
-                        class="primary-btn"
-                        type="button"
-                    >
-                        Add
-                    </button>
+                    <div id="subtaskList"></div>
 
                 </div>
 
+            </div>
 
-                <ul
-                    id="subtaskList"
-                    class="subtask-list"
+
+            <div class="dialog-actions">
+
+                <button
+                    id="closeTaskDetailBtnBottom"
+                    class="secondary-btn"
+                    type="button"
                 >
-                    <!-- Subtasks rendered here -->
-                </ul>
+                    Close
+                </button>
 
             </div>
 
         </dialog>
 
 
+
         <!-- =========================
              NEW PROJECT DIALOG
         ========================== -->
 
-        <dialog
-            id="newProjectDialog"
-            class="project-dialog"
-        >
+        <dialog id="newProjectDialog">
 
             <div class="dialog-header">
 
-                <div>
-
-                    <span class="eyebrow">
-                        PROJECT
-                    </span>
-
-                    <h2>
-                        Create New Project
-                    </h2>
-
-                </div>
-
+                <h2>
+                    Create New Project
+                </h2>
 
                 <button
                     id="closeProjectDialogBtn"
                     class="close-btn"
                     type="button"
-                    aria-label="Close project dialog"
                 >
                     ×
                 </button>
@@ -803,18 +892,26 @@
             </div>
 
 
-            <div class="input-group">
+            <div class="project-dialog-body">
 
-                <label for="projectNameInput">
-                    Project name
-                </label>
+                <p>
+                    Create a project to organize your tasks.
+                </p>
 
-                <input
-                    type="text"
-                    id="projectNameInput"
-                    placeholder="e.g. Portfolio Website"
-                    autocomplete="off"
-                >
+
+                <div class="input-group">
+
+                    <label for="projectNameInput">
+                        Project Name
+                    </label>
+
+                    <input
+                        type="text"
+                        id="projectNameInput"
+                        placeholder="Enter project name"
+                    >
+
+                </div>
 
             </div>
 
@@ -842,24 +939,21 @@
         </dialog>
 
 
+
         <!-- =========================
-             IMPORT / EXPORT
+             DATA MANAGEMENT
         ========================== -->
 
         <section class="data-card">
 
             <div>
 
-                <span class="eyebrow">
-                    DATA
-                </span>
-
                 <h3>
                     Data Management
                 </h3>
 
                 <p>
-                    Backup or restore your task data.
+                    Export or import your task manager data.
                 </p>
 
             </div>
@@ -872,7 +966,7 @@
                     class="secondary-btn"
                     type="button"
                 >
-                    Export JSON
+                    Export
                 </button>
 
 
@@ -880,14 +974,13 @@
                     for="importInput"
                     class="secondary-btn"
                 >
-                    Import JSON
+                    Import
                 </label>
-
 
                 <input
                     type="file"
                     id="importInput"
-                    accept=".json,application/json"
+                    accept=".json"
                     hidden
                 >
 
@@ -895,35 +988,37 @@
 
         </section>
 
-    </div>
 
 
-    <!-- =========================
-         UNDO TOAST
-    ========================== -->
+        <!-- =========================
+             UNDO TOAST
+        ========================== -->
 
-    <div
-        id="undoToast"
-        class="undo-toast"
-        hidden
-    >
-
-        <span>
-            Task deleted
-        </span>
-
-        <button
-            id="undoBtn"
-            type="button"
+        <div
+            id="undoToast"
+            class="undo-toast"
+            hidden
         >
-            Undo
-        </button>
+
+            <span>
+                Task deleted — Undo
+            </span>
+
+            <button
+                id="undoBtn"
+                type="button"
+            >
+                Undo
+            </button>
+
+        </div>
 
     </div>
 
 
+
     <!-- =========================
-         JAVASCRIPT MODULE
+         JAVASCRIPT
     ========================== -->
 
     <script
@@ -934,4 +1029,3 @@
 </body>
 
 </html>
-
