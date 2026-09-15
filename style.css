@@ -1,2462 +1,1773 @@
-import {
-    loadTasks,
-    saveTasks,
-    loadProjects,
-    saveProjects
-} from "./storage.js";
-
-import {
-    renderTasks,
-    renderProjects,
-    renderBoard,
-    renderTaskDetail,
-    renderSubtasks,
-    renderProgress
-} from "./render.js";
-
-
 /* =========================
-   STATE
+   RESET
 ========================= */
 
-let tasks = loadTasks();
-let projects = loadProjects();
-
-let activeProjectId = null;
-let activeCategory = "All";
-let searchText = "";
-let currentView = "list";
-let draggedTaskId = null;
-let activeDetailTaskId = null;
-
-
-/* =========================
-   PROJECT MIGRATION
-========================= */
-
-if (projects.length === 0) {
-
-    const defaultProject = {
-        id: crypto.randomUUID(),
-        name: "My Project"
-    };
-
-    projects.push(defaultProject);
-
-    saveProjects(projects);
-}
-
-activeProjectId = projects[0].id;
-
-
-/* =========================
-   MIGRATE OLD TASKS
-========================= */
-
-let tasksChanged = false;
-
-tasks = tasks.map(task => {
-
-    const updatedTask = {
-        ...task
-    };
-
-
-    if (!updatedTask.projectId) {
-
-        updatedTask.projectId =
-            activeProjectId;
-
-        tasksChanged = true;
-    }
-
-
-    if (!updatedTask.status) {
-
-        updatedTask.status =
-            updatedTask.done
-                ? "Done"
-                : "To Do";
-
-        tasksChanged = true;
-    }
-
-
-    if (!updatedTask.description) {
-        updatedTask.description = "";
-    }
-
-
-    if (!updatedTask.dueDate) {
-        updatedTask.dueDate = "";
-    }
-
-
-    if (!updatedTask.priority) {
-        updatedTask.priority = "Normal";
-    }
-
-
-    if (!updatedTask.notes) {
-        updatedTask.notes = "";
-    }
-
-
-    if (!Array.isArray(updatedTask.subtasks)) {
-
-        updatedTask.subtasks = [];
-    }
-
-
-    /*
-       Make sure every subtask uses
-       the same "done" property.
-    */
-
-    updatedTask.subtasks =
-        updatedTask.subtasks.map(
-            subtask => ({
-
-                id:
-                    subtask.id ||
-                    crypto.randomUUID(),
-
-                text:
-                    subtask.text || "",
-
-                done:
-                    Boolean(
-                        subtask.done ??
-                        subtask.completed
-                    )
-            })
-        );
-
-
-    return updatedTask;
-});
-
-
-if (tasksChanged) {
-    saveTasks(tasks);
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
 
 /* =========================
-   DOM ELEMENTS
+   BODY
 ========================= */
 
-const taskInput =
-    document.getElementById("taskInput");
-
-const categorySelect =
-    document.getElementById("categorySelect");
-
-const statusSelect =
-    document.getElementById("statusSelect");
-
-const addTaskBtn =
-    document.getElementById("addTaskBtn");
-
-const searchInput =
-    document.getElementById("searchInput");
-
-const sortSelect =
-    document.getElementById("sortSelect");
-
-const filterButtons =
-    document.querySelectorAll(
-        "#categoryFilters button"
-    );
-
-const taskList =
-    document.getElementById("taskList");
-
-const exportBtn =
-    document.getElementById("exportBtn");
-
-const importInput =
-    document.getElementById("importInput");
-
-const undoToast =
-    document.getElementById("undoToast");
-
-const undoBtn =
-    document.getElementById("undoBtn");
-
-
-/* =========================
-   PROJECT ELEMENTS
-========================= */
-
-const projectSwitcher =
-    document.getElementById(
-        "projectSwitcher"
-    );
-
-const newProjectBtn =
-    document.getElementById(
-        "newProjectBtn"
-    );
-
-const newProjectDialog =
-    document.getElementById(
-        "newProjectDialog"
-    );
-
-const projectNameInput =
-    document.getElementById(
-        "projectNameInput"
-    );
-
-const createProjectBtn =
-    document.getElementById(
-        "createProjectBtn"
-    );
-
-const cancelProjectBtn =
-    document.getElementById(
-        "cancelProjectBtn"
-    );
-
-const closeProjectDialogBtn =
-    document.getElementById(
-        "closeProjectDialogBtn"
-    );
-
-
-/* =========================
-   VIEW ELEMENTS
-========================= */
-
-const listViewBtn =
-    document.getElementById(
-        "listViewBtn"
-    );
-
-const boardViewBtn =
-    document.getElementById(
-        "boardViewBtn"
-    );
-
-const listView =
-    document.getElementById(
-        "listView"
-    );
-
-const boardView =
-    document.getElementById(
-        "boardView"
-    );
-
-
-/* =========================
-   DETAIL ELEMENTS
-========================= */
-
-const taskDetailDialog =
-    document.getElementById(
-        "taskDetailDialog"
-    );
-
-const detailTaskTitle =
-    document.getElementById(
-        "detailTaskTitle"
-    );
-
-const closeDetailBtn =
-    document.getElementById(
-        "closeDetailBtn"
-    );
-
-const detailDescription =
-    document.getElementById(
-        "detailDescription"
-    );
-
-let detailStatus =
-    document.getElementById(
-        "detailStatus"
-    );
-
-let detailPriority =
-    document.getElementById(
-        "detailPriority"
-    );
-
-const detailDueDate =
-    document.getElementById(
-        "detailDueDate"
-    );
-
-let detailCategory =
-    document.getElementById(
-        "detailCategory"
-    );
-
-const taskNotes =
-    document.getElementById(
-        "taskNotes"
-    );
-
-const saveNotesBtn =
-    document.getElementById(
-        "saveNotesBtn"
-    );
-
-const subtaskInput =
-    document.getElementById(
-        "subtaskInput"
-    );
-
-const addSubtaskBtn =
-    document.getElementById(
-        "addSubtaskBtn"
-    );
-
-const subtaskList =
-    document.getElementById(
-        "subtaskList"
-    );
-
-
-/* =========================
-   MAKE DETAIL CONTROLS
-   CLICKABLE
-========================= */
-
-/*
-   If detailStatus / priority / category
-   are normal text elements instead of
-   <select>, convert them into dropdowns.
-*/
-
-function ensureSelect(
-    element,
-    options,
-    defaultValue
-) {
-
-    if (!element) {
-        return null;
-    }
-
-
-    if (
-        element.tagName.toLowerCase() ===
-        "select"
-    ) {
-
-        return element;
-    }
-
-
-    const select =
-        document.createElement("select");
-
-
-    select.id =
-        element.id;
-
-
-    select.className =
-        element.className;
-
-
-    options.forEach(optionValue => {
-
-        const option =
-            document.createElement(
-                "option"
-            );
-
-        option.value =
-            optionValue;
-
-        option.textContent =
-            optionValue;
-
-        select.appendChild(
-            option
-        );
-
-    });
-
-
-    select.value =
-        defaultValue;
-
-
-    element.replaceWith(select);
-
-
-    return select;
-}
-
-
-/* STATUS */
-
-detailStatus =
-    ensureSelect(
-        detailStatus,
-        [
-            "To Do",
-            "In Progress",
-            "In Review",
-            "Done"
-        ],
-        "To Do"
-    );
-
-
-/* PRIORITY */
-
-detailPriority =
-    ensureSelect(
-        detailPriority,
-        [
-            "Low",
-            "Normal",
-            "High"
-        ],
-        "Normal"
-    );
-
-
-/* CATEGORY */
-
-detailCategory =
-    ensureSelect(
-        detailCategory,
-        [
-            "Work",
-            "Personal",
-            "Urgent"
-        ],
-        "Work"
-    );
-
-
-/* =========================
-   INITIAL UI
-========================= */
-
-updateUI();
-
-
-/* =========================
-   ADD TASK
-========================= */
-
-function addTask(
-    text,
-    category,
-    status
-) {
-
-    const newTask = {
-
-        id:
-            crypto.randomUUID(),
-
-        projectId:
-            activeProjectId,
-
-        text:
-            text,
-
-        category:
-            category,
-
-        status:
-            status,
-
-        done:
-            status === "Done",
-
-        description:
-            "",
-
-        dueDate:
-            "",
-
-        priority:
-            "Normal",
-
-        notes:
-            "",
-
-        subtasks:
-            [],
-
-        createdAt:
-            Date.now()
-    };
-
-
-    tasks.push(newTask);
-
-    saveTasks(tasks);
-
-    updateUI();
-
-    taskInput.value = "";
-
-    taskInput.focus();
+body {
+    font-family:
+        Inter,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+
+    background: #f5f8fc;
+    color: #172033;
+
+    min-height: 100vh;
 }
 
 
 /* =========================
-   ADD TASK BUTTON
+   MAIN CONTAINER
 ========================= */
 
-addTaskBtn.addEventListener(
-    "click",
-    () => {
-
-        const text =
-            taskInput.value.trim();
-
-        const category =
-            categorySelect.value;
-
-        const status =
-            statusSelect.value;
-
-
-        if (text === "") {
-
-            taskInput.focus();
-
-            return;
-        }
-
-
-        addTask(
-            text,
-            category,
-            status
-        );
-    }
-);
+.app-container {
+    width: min(1150px, 92%);
+    margin: 0 auto;
+    padding: 45px 0 60px;
+}
 
 
 /* =========================
-   ENTER KEY - ADD TASK
+   HEADER
 ========================= */
 
-taskInput.addEventListener(
-    "keydown",
-    event => {
+.app-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
 
-        if (event.key === "Enter") {
+    margin-bottom: 28px;
+}
 
-            event.preventDefault();
+.eyebrow {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: #3b82f6;
+}
 
-            addTaskBtn.click();
-        }
-    }
-);
+.app-header h1 {
+    margin-top: 8px;
+
+    font-size: clamp(32px, 5vw, 48px);
+    line-height: 1.05;
+
+    letter-spacing: -1.5px;
+}
+
+.app-header p {
+    margin-top: 10px;
+
+    color: #718096;
+    font-size: 15px;
+}
 
 
 /* =========================
-   PROJECT SWITCHING
+   TASK COUNT
 ========================= */
 
-projectSwitcher.addEventListener(
-    "click",
-    event => {
+.task-count {
+    min-width: 85px;
 
-        const projectButton =
-            event.target.closest(
-                ".project-item"
-            );
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 
+    padding: 14px 18px;
 
-        if (!projectButton) {
-            return;
-        }
+    background: white;
 
+    border: 1px solid #e5eaf1;
+    border-radius: 14px;
 
-        activeProjectId =
-            projectButton.dataset.projectId;
+    box-shadow: 0 8px 25px rgba(25, 55, 90, 0.05);
+}
 
+.task-count span {
+    font-size: 25px;
+    font-weight: 700;
+    color: #2563eb;
+}
 
-        activeCategory =
-            "All";
+.task-count small {
+    margin-top: 2px;
 
+    font-size: 11px;
+    color: #8491a5;
 
-        filterButtons.forEach(
-            button => {
-
-                button.classList.remove(
-                    "active"
-                );
-
-
-                if (
-                    button.dataset.category ===
-                    "All"
-                ) {
-
-                    button.classList.add(
-                        "active"
-                    );
-                }
-
-            }
-        );
-
-
-        searchInput.value = "";
-
-        searchText = "";
-
-
-        updateUI();
-    }
-);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
 
 
 /* =========================
-   NEW PROJECT DIALOG
+   PROJECT CARD
 ========================= */
 
-newProjectBtn.addEventListener(
-    "click",
-    () => {
+.projects-card {
+    background: white;
 
-        projectNameInput.value = "";
+    border: 1px solid #e3e9f1;
+    border-radius: 18px;
 
-        newProjectDialog.showModal();
+    padding: 20px 22px;
 
-        projectNameInput.focus();
-    }
-);
+    margin-bottom: 18px;
+
+    box-shadow: 0 10px 30px rgba(30, 60, 100, 0.05);
+}
+
+.projects-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 15px;
+
+    margin-bottom: 15px;
+}
+
+.projects-header h2 {
+    font-size: 16px;
+    letter-spacing: -0.2px;
+}
+
+.project-switcher {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.project-item {
+    border: 1px solid #dce3ec;
+
+    background: #f8fafc;
+
+    color: #536176;
+
+    padding: 9px 14px;
+
+    border-radius: 9px;
+
+    font-size: 13px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition:
+        background 0.2s ease,
+        color 0.2s ease,
+        border-color 0.2s ease,
+        transform 0.2s ease;
+}
+
+.project-item:hover {
+    background: #f1f6ff;
+    border-color: #bfd3f4;
+    color: #2563eb;
+
+    transform: translateY(-1px);
+}
+
+.project-item.active {
+    background: #2563eb;
+    border-color: #2563eb;
+
+    color: white;
+
+    box-shadow: 0 5px 14px rgba(37, 99, 235, 0.18);
+}
 
 
 /* =========================
-   CREATE PROJECT
+   PROJECT PROGRESS
 ========================= */
 
-createProjectBtn.addEventListener(
-    "click",
-    () => {
+.project-progress {
+    margin-top: 17px;
+    padding-top: 16px;
 
-        const name =
-            projectNameInput.value.trim();
+    border-top: 1px solid #edf0f5;
+}
 
+.progress-info {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 
-        if (name === "") {
+    gap: 15px;
 
-            projectNameInput.focus();
+    margin-bottom: 9px;
+}
 
-            return;
-        }
+#activeProjectName {
+    font-size: 13px;
+    font-weight: 700;
+    color: #344054;
+}
 
+#progressText {
+    font-size: 12px;
+    color: #7b8798;
+}
 
-        const newProject = {
+.progress-bar {
+    width: 100%;
+    height: 8px;
 
-            id:
-                crypto.randomUUID(),
+    overflow: hidden;
 
-            name:
-                name
-        };
+    background: #edf1f6;
 
+    border-radius: 999px;
+}
 
-        projects.push(newProject);
+.progress-fill {
+    width: 0;
+    height: 100%;
 
-        saveProjects(projects);
+    background: #2563eb;
 
+    border-radius: inherit;
 
-        activeProjectId =
-            newProject.id;
-
-
-        newProjectDialog.close();
-
-        updateUI();
-    }
-);
+    transition: width 0.4s ease;
+}
 
 
 /* =========================
-   CREATE PROJECT ENTER
+   ADD TASK CARD
 ========================= */
 
-projectNameInput.addEventListener(
-    "keydown",
-    event => {
+.add-task-card {
+    display: grid;
 
-        if (event.key === "Enter") {
+    grid-template-columns:
+        minmax(220px, 1fr)
+        150px
+        150px
+        150px
+        auto;
 
-            event.preventDefault();
+    gap: 12px;
 
-            createProjectBtn.click();
-        }
-    }
-);
+    align-items: end;
+
+    padding: 22px;
+
+    background: white;
+
+    border: 1px solid #e3e9f1;
+    border-radius: 18px;
+
+    box-shadow: 0 12px 35px rgba(30, 60, 100, 0.06);
+
+    margin-bottom: 18px;
+}
 
 
 /* =========================
-   CANCEL PROJECT
+   INPUT GROUP
 ========================= */
 
-cancelProjectBtn.addEventListener(
-    "click",
-    () => {
+.input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
 
-        newProjectDialog.close();
-    }
-);
+.input-group label,
+.sort-box label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #667085;
+}
 
 
 /* =========================
-   CLOSE PROJECT DIALOG
+   INPUTS
 ========================= */
 
-closeProjectDialogBtn.addEventListener(
-    "click",
-    () => {
+input,
+select,
+textarea {
+    width: 100%;
 
-        newProjectDialog.close();
-    }
-);
+    border: 1px solid #dce3ec;
+    border-radius: 10px;
+
+    background: #fbfcfe;
+
+    color: #172033;
+
+    font-size: 14px;
+
+    outline: none;
+
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        background 0.2s ease;
+}
+
+input,
+select {
+    height: 46px;
+    padding: 0 14px;
+}
+
+textarea {
+    padding: 12px 14px;
+    resize: vertical;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    border-color: #4f8df7;
+
+    background: white;
+
+    box-shadow:
+        0 0 0 4px rgba(59, 130, 246, 0.09);
+}
 
 
 /* =========================
-   CATEGORY FILTER
+   BUTTONS
 ========================= */
 
-filterButtons.forEach(
-    button => {
+button {
+    font-family: inherit;
+}
 
-        button.addEventListener(
-            "click",
-            () => {
+.primary-btn {
+    height: 46px;
 
-                activeCategory =
-                    button.dataset.category;
+    padding: 0 20px;
 
+    border: none;
+    border-radius: 10px;
 
-                filterButtons.forEach(
-                    btn => {
+    background: #2563eb;
+    color: white;
 
-                        btn.classList.remove(
-                            "active"
-                        );
-                    }
-                );
+    font-size: 14px;
+    font-weight: 600;
 
+    cursor: pointer;
 
-                button.classList.add(
-                    "active"
-                );
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
+    gap: 7px;
 
-                updateUI();
-            }
-        );
-    }
-);
+    transition:
+        transform 0.2s ease,
+        background 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.primary-btn:hover {
+    background: #1d4ed8;
+
+    transform: translateY(-1px);
+
+    box-shadow: 0 8px 20px rgba(37, 99, 235, 0.2);
+}
+
+.primary-btn:active {
+    transform: translateY(0);
+}
+
+.primary-btn span {
+    font-size: 20px;
+    line-height: 1;
+}
 
 
 /* =========================
-   LIVE SEARCH
+   CONTROLS CARD
 ========================= */
 
-searchInput.addEventListener(
-    "input",
-    () => {
+.controls-card {
+    display: grid;
 
-        searchText =
-            searchInput.value
-                .toLowerCase()
-                .trim();
+    grid-template-columns:
+        minmax(220px, 1fr)
+        auto
+        auto;
+
+    align-items: center;
+
+    gap: 20px;
+
+    padding: 18px 22px;
+
+    background: white;
+
+    border: 1px solid #e3e9f1;
+    border-radius: 18px;
+
+    margin-bottom: 28px;
+}
 
 
-        updateUI();
-    }
-);
+/* =========================
+   SEARCH
+========================= */
+
+.search-box {
+    position: relative;
+}
+
+.search-box input {
+    padding-left: 40px;
+}
+
+.search-icon {
+    position: absolute;
+
+    left: 14px;
+    top: 50%;
+
+    transform: translateY(-50%);
+
+    color: #8a96a8;
+
+    font-size: 22px;
+
+    pointer-events: none;
+}
+
+
+/* =========================
+   FILTERS
+========================= */
+
+.filter-row {
+    display: flex;
+    gap: 5px;
+
+    padding: 4px;
+
+    background: #f3f6fa;
+
+    border-radius: 10px;
+}
+
+.filter-btn {
+    border: none;
+
+    padding: 8px 13px;
+
+    border-radius: 7px;
+
+    background: transparent;
+
+    color: #687588;
+
+    font-size: 13px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition: 0.2s ease;
+}
+
+.filter-btn:hover {
+    color: #2563eb;
+}
+
+.filter-btn.active {
+    background: white;
+
+    color: #2563eb;
+
+    box-shadow:
+        0 2px 8px rgba(30, 60, 100, 0.08);
+}
 
 
 /* =========================
    SORT
 ========================= */
 
-sortSelect.addEventListener(
-    "change",
-    () => {
+.sort-box {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}
 
-        updateUI();
-    }
-);
+.sort-box select {
+    width: auto;
+    min-width: 115px;
+
+    height: 40px;
+}
 
 
 /* =========================
    VIEW TOGGLE
 ========================= */
 
-listViewBtn.addEventListener(
-    "click",
-    () => {
-
-        currentView = "list";
-
-        updateViewButtons();
-
-        updateUI();
-    }
-);
-
-
-boardViewBtn.addEventListener(
-    "click",
-    () => {
-
-        currentView = "board";
-
-        updateViewButtons();
-
-        updateUI();
-    }
-);
-
-
-function updateViewButtons() {
-
-    listViewBtn.classList.toggle(
-        "active",
-        currentView === "list"
-    );
-
-
-    boardViewBtn.classList.toggle(
-        "active",
-        currentView === "board"
-    );
-
-
-    listView.hidden =
-        currentView !== "list";
-
-
-    boardView.hidden =
-        currentView !== "board";
-}
-
-
-/* =========================
-   GET PROJECT TASKS
-========================= */
-
-function getProjectTasks() {
-
-    return tasks.filter(
-        task =>
-            task.projectId ===
-            activeProjectId
-    );
-}
-
-
-/* =========================
-   GET VISIBLE TASKS
-========================= */
-
-function getVisibleTasks() {
-
-    let visibleTasks =
-        getProjectTasks();
-
-
-    /* CATEGORY FILTER */
-
-    if (
-        activeCategory !== "All"
-    ) {
-
-        visibleTasks =
-            visibleTasks.filter(
-                task =>
-                    task.category ===
-                    activeCategory
-            );
-    }
-
-
-    /* SEARCH */
-
-    if (searchText !== "") {
-
-        visibleTasks =
-            visibleTasks.filter(
-                task =>
-                    String(
-                        task.text || ""
-                    )
-                    .toLowerCase()
-                    .includes(searchText)
-            );
-    }
-
-
-    /* SORT */
-
-    if (
-        sortSelect.value === "az"
-    ) {
-
-        visibleTasks.sort(
-            (a, b) =>
-                String(a.text || "")
-                    .localeCompare(
-                        String(b.text || "")
-                    )
-        );
-
-    } else {
-
-        visibleTasks.sort(
-            (a, b) =>
-                (b.createdAt || 0) -
-                (a.createdAt || 0)
-        );
-    }
-
-
-    return visibleTasks;
-}
-
-
-/* =========================
-   UPDATE UI
-========================= */
-
-function updateUI() {
-
-    const visibleTasks =
-        getVisibleTasks();
-
-
-    const projectTasks =
-        getProjectTasks();
-
-
-    const activeProject =
-        projects.find(
-            project =>
-                project.id ===
-                activeProjectId
-        );
-
-
-    /* PROJECTS */
-
-    renderProjects(
-        projects,
-        activeProjectId
-    );
-
-
-    /* LIST */
-
-    renderTasks(
-        visibleTasks
-    );
-
-
-    /* BOARD */
-
-    renderBoard(
-        visibleTasks
-    );
-
-
-    /* PROGRESS */
-
-    if (activeProject) {
-
-        renderProgress(
-            activeProject,
-            projectTasks
-        );
-    }
-
-
-    /* VIEW */
-
-    updateViewButtons();
-
-
-    /* DRAG & DROP */
-
-    if (
-        currentView === "list"
-    ) {
-
-        setupListDragAndDrop();
-
-    } else {
-
-        setupBoardDragAndDrop();
-    }
-}
-
-
-/* =========================
-   LIST DRAG & DROP
-========================= */
-
-function setupListDragAndDrop() {
-
-    const taskItems =
-        document.querySelectorAll(
-            ".task-item"
-        );
-
-
-    taskItems.forEach(
-        item => {
-
-            item.addEventListener(
-                "dragstart",
-                event => {
-
-                    draggedTaskId =
-                        item.dataset.id ||
-                        item.dataset.taskId;
-
-
-                    item.classList.add(
-                        "dragging"
-                    );
-
-
-                    event.dataTransfer.effectAllowed =
-                        "move";
-
-
-                    event.dataTransfer.setData(
-                        "text/plain",
-                        draggedTaskId
-                    );
-                }
-            );
-
-
-            item.addEventListener(
-                "dragend",
-                () => {
-
-                    item.classList.remove(
-                        "dragging"
-                    );
-
-
-                    draggedTaskId = null;
-                }
-            );
-        }
-    );
-
-
-    taskList.addEventListener(
-        "dragover",
-        handleListDragOver
-    );
-
-
-    taskList.addEventListener(
-        "drop",
-        handleListDrop
-    );
-}
-
-
-function handleListDragOver(event) {
-
-    event.preventDefault();
-
-
-    const draggingItem =
-        document.querySelector(
-            ".task-item.dragging"
-        );
-
-
-    if (!draggingItem) {
-        return;
-    }
-
-
-    const taskItems = [
-        ...taskList.querySelectorAll(
-            ".task-item:not(.dragging)"
-        )
-    ];
-
-
-    let closestItem = null;
-
-    let closestOffset =
-        Number.NEGATIVE_INFINITY;
-
-
-    for (
-        const item of taskItems
-    ) {
-
-        const box =
-            item.getBoundingClientRect();
-
-
-        const offset =
-            event.clientY -
-            box.top -
-            box.height / 2;
-
-
-        if (
-            offset < 0 &&
-            offset > closestOffset
-        ) {
-
-            closestOffset =
-                offset;
-
-            closestItem =
-                item;
-        }
-    }
-
-
-    if (closestItem) {
-
-        taskList.insertBefore(
-            draggingItem,
-            closestItem
-        );
-
-    } else {
-
-        taskList.appendChild(
-            draggingItem
-        );
-    }
-}
-
-
-function handleListDrop(event) {
-
-    event.preventDefault();
-
-
-    const orderedIds = [
-        ...taskList.querySelectorAll(
-            ".task-item"
-        )
-    ].map(
-        item =>
-            item.dataset.id ||
-            item.dataset.taskId
-    );
-
-
-    const visibleSet =
-        new Set(orderedIds);
-
-
-    const projectTasks =
-        tasks.filter(
-            task =>
-                task.projectId ===
-                activeProjectId
-        );
-
-
-    const reorderedProjectTasks =
-        [];
-
-
-    orderedIds.forEach(id => {
-
-        const task =
-            projectTasks.find(
-                item =>
-                    item.id === id
-            );
-
-
-        if (task) {
-
-            reorderedProjectTasks.push(
-                task
-            );
-        }
-    });
-
-
-    projectTasks.forEach(
-        task => {
-
-            if (
-                !visibleSet.has(
-                    task.id
-                )
-            ) {
-
-                reorderedProjectTasks.push(
-                    task
-                );
-            }
-        }
-    );
-
-
-    const otherTasks =
-        tasks.filter(
-            task =>
-                task.projectId !==
-                activeProjectId
-        );
-
-
-    tasks = [
-        ...otherTasks,
-        ...reorderedProjectTasks
-    ];
-
-
-    saveTasks(tasks);
-
-    draggedTaskId = null;
-
-    updateUI();
-}
-
-
-/* =========================
-   BOARD DRAG & DROP
-========================= */
-
-function setupBoardDragAndDrop() {
-
-    const boardTasks =
-        document.querySelectorAll(
-            ".kanban-task"
-        );
-
-
-    const columns =
-        document.querySelectorAll(
-            ".kanban-tasks"
-        );
-
-
-    boardTasks.forEach(
-        card => {
-
-            card.addEventListener(
-                "dragstart",
-                event => {
-
-                    draggedTaskId =
-                        card.dataset.taskId ||
-                        card.dataset.id;
-
-
-                    card.classList.add(
-                        "dragging"
-                    );
-
-
-                    event.dataTransfer.effectAllowed =
-                        "move";
-
-
-                    event.dataTransfer.setData(
-                        "text/plain",
-                        draggedTaskId
-                    );
-                }
-            );
-
-
-            card.addEventListener(
-                "dragend",
-                () => {
-
-                    card.classList.remove(
-                        "dragging"
-                    );
-
-
-                    draggedTaskId = null;
-                }
-            );
-        }
-    );
-
-
-    columns.forEach(
-        column => {
-
-            column.addEventListener(
-                "dragover",
-                event => {
-
-                    event.preventDefault();
-
-                    column.classList.add(
-                        "drag-over"
-                    );
-                }
-            );
-
-
-            column.addEventListener(
-                "dragleave",
-                () => {
-
-                    column.classList.remove(
-                        "drag-over"
-                    );
-                }
-            );
-
-
-            column.addEventListener(
-                "drop",
-                event => {
-
-                    event.preventDefault();
-
-
-                    column.classList.remove(
-                        "drag-over"
-                    );
-
-
-                    const taskId =
-                        draggedTaskId ||
-                        event.dataTransfer.getData(
-                            "text/plain"
-                        );
-
-
-                    if (!taskId) {
-                        return;
-                    }
-
-
-                    const task =
-                        tasks.find(
-                            item =>
-                                item.id ===
-                                taskId
-                        );
-
-
-                    if (!task) {
-                        return;
-                    }
-
-
-                    let newStatus =
-                        "To Do";
-
-
-                    if (
-                        column.id ===
-                        "inProgressColumn"
-                    ) {
-
-                        newStatus =
-                            "In Progress";
-
-                    } else if (
-                        column.id ===
-                        "inReviewColumn"
-                    ) {
-
-                        newStatus =
-                            "In Review";
-
-                    } else if (
-                        column.id ===
-                        "doneColumn"
-                    ) {
-
-                        newStatus =
-                            "Done";
-                    }
-
-
-                    task.status =
-                        newStatus;
-
-
-                    task.done =
-                        newStatus ===
-                        "Done";
-
-
-                    saveTasks(tasks);
-
-                    draggedTaskId = null;
-
-                    updateUI();
-                }
-            );
-        }
-    );
-}
-
-
-/* =========================
-   OPEN TASK DETAIL
-========================= */
-
-document.addEventListener(
-    "click",
-    event => {
-
-        const taskCard =
-            event.target.closest(
-                ".task-item, .kanban-task"
-            );
-
-
-        if (!taskCard) {
-            return;
-        }
-
-
-        if (
-            event.target.closest(
-                ".delete-btn"
-            )
-        ) {
-            return;
-        }
-
-
-        const taskId =
-            taskCard.dataset.id ||
-            taskCard.dataset.taskId;
-
-
-        if (!taskId) {
-            return;
-        }
-
-
-        openTaskDetail(taskId);
-    }
-);
-
-
-/* =========================
-   OPEN DETAIL
-========================= */
-
-function openTaskDetail(taskId) {
-
-    const task =
-        tasks.find(
-            item =>
-                item.id === taskId
-        );
-
-
-    if (!task) {
-        return;
-    }
-
-
-    activeDetailTaskId =
-        taskId;
-
-
-    renderTaskDetail(task);
-
-
-    renderSubtasks(
-        task.subtasks || []
-    );
-
-
-    taskDetailDialog.showModal();
-}
-
-
-/* =========================
-   CLOSE DETAIL
-========================= */
-
-closeDetailBtn.addEventListener(
-    "click",
-    () => {
-
-        taskDetailDialog.close();
-
-        activeDetailTaskId = null;
-    }
-);
-
-
-/* =========================
-   SAVE DETAIL CHANGES
-========================= */
-
-function saveDetailChanges() {
-
-    if (!activeDetailTaskId) {
-        return;
-    }
-
-
-    const task =
-        tasks.find(
-            item =>
-                item.id ===
-                activeDetailTaskId
-        );
-
-
-    if (!task) {
-        return;
-    }
-
-
-    /* DESCRIPTION */
-
-    if (detailDescription) {
-
-        task.description =
-            detailDescription.value ??
-            "";
-    }
-
-
-    /* STATUS */
-
-    if (detailStatus) {
-
-        task.status =
-            detailStatus.value;
-
-        task.done =
-            task.status === "Done";
-    }
-
-
-    /* PRIORITY */
-
-    if (detailPriority) {
-
-        task.priority =
-            detailPriority.value;
-    }
-
-
-    /* DUE DATE */
-
-    if (detailDueDate) {
-
-        task.dueDate =
-            detailDueDate.value;
-    }
-
-
-    /* CATEGORY */
-
-    if (detailCategory) {
-
-        task.category =
-            detailCategory.value;
-    }
-
-
-    /* NOTES */
-
-    if (taskNotes) {
-
-        task.notes =
-            taskNotes.value;
-    }
-
-
-    saveTasks(tasks);
-
-    updateUI();
-
-
-    /*
-       Re-render the open dialog
-       so the selected status stays visible.
-    */
-
-    if (
-        taskDetailDialog.open &&
-        activeDetailTaskId
-    ) {
-
-        renderTaskDetail(task);
-
-        renderSubtasks(
-            task.subtasks || []
-        );
-    }
-}
-
-
-/* =========================
-   DETAIL STATUS CHANGE
-========================= */
-
-detailStatus.addEventListener(
-    "change",
-    saveDetailChanges
-);
-
-
-/* =========================
-   DETAIL PRIORITY CHANGE
-========================= */
-
-detailPriority.addEventListener(
-    "change",
-    saveDetailChanges
-);
-
-
-/* =========================
-   DETAIL DUE DATE CHANGE
-========================= */
-
-detailDueDate.addEventListener(
-    "change",
-    saveDetailChanges
-);
-
-
-/* =========================
-   DETAIL CATEGORY CHANGE
-========================= */
-
-detailCategory.addEventListener(
-    "change",
-    saveDetailChanges
-);
-
-
-/* =========================
-   DETAIL DESCRIPTION CHANGE
-========================= */
-
-detailDescription.addEventListener(
-    "change",
-    saveDetailChanges
-);
-
-
-/* =========================
-   SAVE NOTES
-========================= */
-
-saveNotesBtn.addEventListener(
-    "click",
-    () => {
-
-        if (!activeDetailTaskId) {
-            return;
-        }
-
-
-        const task =
-            tasks.find(
-                item =>
-                    item.id ===
-                    activeDetailTaskId
-            );
-
-
-        if (!task) {
-            return;
-        }
-
-
-        task.notes =
-            taskNotes.value;
-
-
-        saveTasks(tasks);
-
-        updateUI();
-
-
-        /*
-           Keep detail dialog open
-           after saving notes.
-        */
-
-        if (
-            taskDetailDialog.open
-        ) {
-
-            renderTaskDetail(task);
-
-            renderSubtasks(
-                task.subtasks || []
-            );
-        }
-    }
-);
-
-
-/* =========================
-   ADD SUBTASK
-========================= */
-
-addSubtaskBtn.addEventListener(
-    "click",
-    addSubtask
-);
-
-
-subtaskInput.addEventListener(
-    "keydown",
-    event => {
-
-        if (event.key === "Enter") {
-
-            event.preventDefault();
-
-            addSubtask();
-        }
-    }
-);
-
-
-function addSubtask() {
-
-    if (!activeDetailTaskId) {
-        return;
-    }
-
-
-    const text =
-        subtaskInput.value.trim();
-
-
-    if (text === "") {
-        return;
-    }
-
-
-    const task =
-        tasks.find(
-            item =>
-                item.id ===
-                activeDetailTaskId
-        );
-
-
-    if (!task) {
-        return;
-    }
-
-
-    if (!Array.isArray(task.subtasks)) {
-
-        task.subtasks = [];
-    }
-
-
-    task.subtasks.push({
-
-        id:
-            crypto.randomUUID(),
-
-        text:
-            text,
-
-        done:
-            false
-    });
-
-
-    saveTasks(tasks);
-
-
-    subtaskInput.value = "";
-
-
-    renderSubtasks(
-        task.subtasks
-    );
-}
-
-
-/* =========================
-   SUBTASK CHECK / DELETE
-========================= */
-
-subtaskList.addEventListener(
-    "click",
-    event => {
-
-        if (!activeDetailTaskId) {
-            return;
-        }
-
-
-        const task =
-            tasks.find(
-                item =>
-                    item.id ===
-                    activeDetailTaskId
-            );
-
-
-        if (!task) {
-            return;
-        }
-
-
-        const checkbox =
-            event.target.closest(
-                ".subtask-checkbox"
-            );
-
-
-        const deleteButton =
-            event.target.closest(
-                ".subtask-delete"
-            );
-
-
-        /* CHECK SUBTASK */
-
-        if (checkbox) {
-
-            const subtaskId =
-                checkbox.dataset.subtaskId;
-
-
-            const subtask =
-                task.subtasks.find(
-                    item =>
-                        item.id ===
-                        subtaskId
-                );
-
-
-            if (subtask) {
-
-                subtask.done =
-                    checkbox.checked;
-            }
-
-
-            saveTasks(tasks);
-
-
-            renderSubtasks(
-                task.subtasks
-            );
-
-
-            return;
-        }
-
-
-        /* DELETE SUBTASK */
-
-        if (deleteButton) {
-
-            const subtaskId =
-                deleteButton.dataset.subtaskId;
-
-
-            task.subtasks =
-                task.subtasks.filter(
-                    item =>
-                        item.id !==
-                        subtaskId
-                );
-
-
-            saveTasks(tasks);
-
-
-            renderSubtasks(
-                task.subtasks
-            );
-        }
-    }
-);
-
-
-/* =========================
-   DELETE TASK
-========================= */
-
-document.addEventListener(
-    "click",
-    event => {
-
-        if (
-            !event.target.classList.contains(
-                "delete-btn"
-            )
-        ) {
-            return;
-        }
-
-
-        const taskCard =
-            event.target.closest(
-                ".task-item, .kanban-task"
-            );
-
-
-        if (!taskCard) {
-            return;
-        }
-
-
-        const taskId =
-            taskCard.dataset.id ||
-            taskCard.dataset.taskId;
-
-
-        deleteTask(taskId);
-    }
-);
-
-
-/* =========================
-   DELETE FUNCTION
-========================= */
-
-function deleteTask(taskId) {
-
-    const originalIndex =
-        tasks.findIndex(
-            task =>
-                task.id === taskId
-        );
-
-
-    if (originalIndex === -1) {
-        return;
-    }
-
-
-    const removedTask =
-        tasks[originalIndex];
-
-
-    tasks =
-        tasks.filter(
-            task =>
-                task.id !== taskId
-        );
-
-
-    saveTasks(tasks);
-
-    updateUI();
-
-
-    showUndoToast(
-        removedTask,
-        originalIndex
-    );
-}
-
-
-/* =========================
-   UNDO
-========================= */
-
-function showUndoToast(
-    removedTask,
-    originalIndex
-) {
-
-    let undoUsed = false;
-
-
-    undoToast.hidden = false;
-
-
-    const timeoutId =
-        setTimeout(
-            () => {
-
-                undoToast.hidden = true;
-
-            },
-            5000
-        );
-
-
-    function undoDelete() {
-
-        if (undoUsed) {
-            return;
-        }
-
-
-        undoUsed = true;
-
-
-        clearTimeout(
-            timeoutId
-        );
-
-
-        tasks.splice(
-            originalIndex,
-            0,
-            removedTask
-        );
-
-
-        saveTasks(tasks);
-
-        updateUI();
-
-        undoToast.hidden = true;
-    }
-
-
-    undoBtn.onclick =
-        undoDelete;
-}
-
-
-/* =========================
-   EXPORT
-========================= */
-
-exportBtn.addEventListener(
-    "click",
-    () => {
-
-        const data = {
-
-            projects:
-                projects,
-
-            tasks:
-                tasks
-        };
-
-
-        const json =
-            JSON.stringify(
-                data,
-                null,
-                2
-            );
-
-
-        const blob =
-            new Blob(
-                [json],
-                {
-                    type:
-                        "application/json"
-                }
-            );
-
-
-        const url =
-            URL.createObjectURL(
-                blob
-            );
-
-
-        const link =
-            document.createElement(
-                "a"
-            );
-
-
-        link.href =
-            url;
-
-
-        link.download =
-            "tasks.json";
-
-
-        document.body.appendChild(
-            link
-        );
-
-
-        link.click();
-
-
-        link.remove();
-
-
-        URL.revokeObjectURL(
-            url
-        );
-    }
-);
-
-
-/* =========================
-   IMPORT
-========================= */
-
-importInput.addEventListener(
-    "change",
-    event => {
-
-        const file =
-            event.target.files[0];
-
-
-        if (!file) {
-            return;
-        }
-
-
-        const reader =
-            new FileReader();
-
-
-        reader.onload =
-            event => {
-
-                try {
-
-                    const importedData =
-                        JSON.parse(
-                            event.target.result
-                        );
-
-
-                    /* WEEK 3 FORMAT */
-
-                    if (
-                        importedData &&
-                        !Array.isArray(
-                            importedData
-                        ) &&
-                        Array.isArray(
-                            importedData.projects
-                        ) &&
-                        Array.isArray(
-                            importedData.tasks
-                        )
-                    ) {
-
-                        projects =
-                            importedData.projects;
-
-
-                        tasks =
-                            importedData.tasks;
-
-
-                        if (
-                            projects.length ===
-                            0
-                        ) {
-
-                            projects.push({
-
-                                id:
-                                    crypto.randomUUID(),
-
-                                name:
-                                    "My Project"
-                            });
-                        }
-
-
-                        activeProjectId =
-                            projects[0].id;
-                    }
-
-
-                    /* WEEK 2 FORMAT */
-
-                    else if (
-                        Array.isArray(
-                            importedData
-                        )
-                    ) {
-
-                        if (
-                            projects.length ===
-                            0
-                        ) {
-
-                            projects.push({
-
-                                id:
-                                    crypto.randomUUID(),
-
-                                name:
-                                    "My Project"
-                            });
-
-
-                            saveProjects(
-                                projects
-                            );
-                        }
-
-
-                        activeProjectId =
-                            projects[0].id;
-
-
-                        tasks =
-                            importedData;
-                    }
-
-
-                    else {
-
-                        throw new Error(
-                            "Invalid task data"
-                        );
-                    }
-
-
-                    /* NORMALIZE TASKS */
-
-                    tasks =
-                        tasks
-                            .filter(
-                                task =>
-                                    task &&
-                                    typeof task.text ===
-                                        "string"
-                            )
-                            .map(
-                                task => ({
-
-                                    id:
-                                        task.id ||
-                                        crypto.randomUUID(),
-
-                                    projectId:
-                                        task.projectId ||
-                                        activeProjectId,
-
-                                    text:
-                                        task.text,
-
-                                    category:
-                                        task.category ||
-                                        "Work",
-
-                                    status:
-                                        task.status ||
-                                        (
-                                            task.done
-                                                ? "Done"
-                                                : "To Do"
-                                        ),
-
-                                    done:
-                                        task.status ===
-                                            "Done" ||
-                                        Boolean(
-                                            task.done
-                                        ),
-
-                                    description:
-                                        task.description ||
-                                        "",
-
-                                    dueDate:
-                                        task.dueDate ||
-                                        "",
-
-                                    priority:
-                                        task.priority ||
-                                        "Normal",
-
-                                    notes:
-                                        task.notes ||
-                                        "",
-
-                                    subtasks:
-                                        Array.isArray(
-                                            task.subtasks
-                                        )
-                                            ? task.subtasks.map(
-                                                subtask => ({
-
-                                                    id:
-                                                        subtask.id ||
-                                                        crypto.randomUUID(),
-
-                                                    text:
-                                                        subtask.text ||
-                                                        "",
-
-                                                    done:
-                                                        Boolean(
-                                                            subtask.done ??
-                                                            subtask.completed
-                                                        )
-                                                })
-                                            )
-                                            : [],
-
-                                    createdAt:
-                                        task.createdAt ||
-                                        Date.now()
-                                })
-                            );
-
-
-                    saveProjects(projects);
-
-                    saveTasks(tasks);
-
-                    updateUI();
-
-                    importInput.value = "";
-
-
-                } catch (error) {
-
-                    console.error(
-                        error
-                    );
-
-
-                    alert(
-                        "Invalid JSON file. Please import a valid tasks.json file."
-                    );
-                }
-            };
-
-
-        reader.readAsText(file);
-    }
-);
-
-
-/* =========================
-   KEYBOARD SHORTCUTS
-========================= */
-
-document.addEventListener(
-    "keydown",
-    event => {
-
-        const activeElement =
-            document.activeElement;
-
-
-        const isTyping =
-            activeElement &&
-            (
-                activeElement.tagName ===
-                    "INPUT" ||
-                activeElement.tagName ===
-                    "TEXTAREA" ||
-                activeElement.tagName ===
-                    "SELECT"
-            );
-
-
-        /* N → NEW TASK */
-
-        if (
-            event.key.toLowerCase() ===
-                "n" &&
-            !isTyping
-        ) {
-
-            event.preventDefault();
-
-            taskInput.focus();
-        }
-
-
-        /* ESCAPE → CLEAR SEARCH */
-
-        if (
-            event.key === "Escape" &&
-            !taskDetailDialog.open &&
-            !newProjectDialog.open
-        ) {
-
-            searchInput.value = "";
-
-            searchText = "";
-
-            updateUI();
-        }
-    }
-);
-        
-/* =========================
-   AUTH SCREEN
-========================= */
-
-.auth-screen {
-    min-height: 100vh;
+.view-toggle {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #f5f8fc;
+
+    gap: 4px;
+
+    padding: 4px;
+
+    background: #f3f6fa;
+
+    border-radius: 10px;
 }
 
-.auth-card {
-    width: min(380px, 90%);
+.view-toggle button {
+    border: none;
+
+    background: transparent;
+
+    color: #687588;
+
+    padding: 8px 12px;
+
+    border-radius: 7px;
+
+    font-size: 12px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition: 0.2s ease;
+}
+
+.view-toggle button:hover {
+    color: #2563eb;
+}
+
+.view-toggle button.active {
     background: white;
-    padding: 32px;
-    border-radius: 18px;
-    box-shadow: 0 10px 30px rgba(30, 60, 100, 0.08);
+
+    color: #2563eb;
+
+    box-shadow:
+        0 2px 8px rgba(30, 60, 100, 0.08);
 }
 
-.auth-card h1 {
-    font-size: 26px;
-    margin-bottom: 8px;
+
+/* =========================
+   TASK SECTION
+========================= */
+
+.task-section {
+    margin-bottom: 24px;
 }
 
-.auth-card p {
-    color: #718096;
-    font-size: 13px;
-    margin-bottom: 20px;
-}
+.section-heading {
+    display: flex;
+    justify-content: space-between;
 
-.auth-card .input-group {
     margin-bottom: 14px;
 }
 
-.auth-error {
-    color: #dc3f3f;
+.section-heading h2 {
+    font-size: 20px;
+    letter-spacing: -0.3px;
+}
+
+.section-heading p {
+    margin-top: 5px;
+
     font-size: 13px;
+    color: #8491a5;
+}
+
+
+/* =========================
+   TASK LIST
+========================= */
+
+#taskList {
+    list-style: none;
+
+    display: flex;
+    flex-direction: column;
+
+    gap: 10px;
+}
+
+
+/* =========================
+   TASK ITEM
+========================= */
+
+.task-item {
+    display: flex;
+    align-items: center;
+
+    gap: 15px;
+
+    padding: 17px 18px;
+
+    background: white;
+
+    border: 1px solid #e3e9f1;
+    border-radius: 14px;
+
+    cursor: grab;
+
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        border-color 0.2s ease,
+        opacity 0.2s ease;
+
+    animation:
+        taskAppear 0.35s ease both;
+}
+
+.task-item:hover {
+    transform: translateY(-2px);
+
+    border-color: #cdd8e7;
+
+    box-shadow:
+        0 10px 25px rgba(30, 60, 100, 0.07);
+}
+
+.task-item:active {
+    cursor: grabbing;
+}
+
+.task-item.dragging {
+    opacity: 0.45;
+
+    transform: scale(0.98);
+}
+
+
+/* =========================
+   DRAG HANDLE
+========================= */
+
+.drag-handle {
+    color: #a0acbb;
+
+    font-size: 18px;
+
+    user-select: none;
+
+    cursor: grab;
+}
+
+
+/* =========================
+   TASK CONTENT
+========================= */
+
+.task-content {
+    flex: 1;
+
+    min-width: 0;
+}
+
+.task-title {
+    display: block;
+
+    font-size: 15px;
+    font-weight: 600;
+
+    color: #202b3c;
+
+    overflow-wrap: anywhere;
+}
+
+.task-meta {
+    display: flex;
+    align-items: center;
+
+    gap: 8px;
+
+    margin-top: 7px;
+}
+
+
+/* =========================
+   CATEGORY BADGES
+========================= */
+
+.category-badge {
+    display: inline-flex;
+    align-items: center;
+
+    padding: 4px 9px;
+
+    border-radius: 20px;
+
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.category-work {
+    background: #edf4ff;
+    color: #2563eb;
+}
+
+.category-personal {
+    background: #f1f3f7;
+    color: #596579;
+}
+
+.category-urgent {
+    background: #fff1f1;
+    color: #dc3f3f;
+}
+
+
+/* =========================
+   STATUS BADGE
+========================= */
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+
+    padding: 4px 9px;
+
+    border-radius: 20px;
+
+    background: #f2f4f7;
+
+    color: #667085;
+
+    font-size: 11px;
+    font-weight: 700;
+}
+
+
+/* =========================
+   DELETE BUTTON
+========================= */
+
+.delete-btn {
+    flex-shrink: 0;
+
+    border: none;
+
+    background: transparent;
+
+    color: #9aa5b5;
+
+    font-size: 13px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    padding: 8px;
+
+    border-radius: 7px;
+
+    transition: 0.2s ease;
+}
+
+.delete-btn:hover {
+    background: #fff2f2;
+
+    color: #dc3f3f;
+}
+
+
+/* =========================
+   EMPTY STATE
+========================= */
+
+.empty-state {
+    text-align: center;
+
+    padding: 55px 20px;
+
+    background: white;
+
+    border: 1px dashed #d7e0eb;
+
+    border-radius: 16px;
+}
+
+.empty-icon {
+    width: 48px;
+    height: 48px;
+
+    margin: 0 auto 15px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+
+    background: #edf4ff;
+    color: #2563eb;
+
+    font-size: 22px;
+    font-weight: 700;
+}
+
+.empty-state h3 {
+    font-size: 16px;
+}
+
+.empty-state p {
+    margin-top: 6px;
+
+    color: #8491a5;
+
+    font-size: 13px;
+}
+
+
+/* =========================
+   KANBAN BOARD
+========================= */
+
+.board-view {
+    width: 100%;
+}
+
+.kanban-board {
+    display: grid;
+
+    grid-template-columns:
+        repeat(4, minmax(0, 1fr));
+
+    gap: 14px;
+
+    align-items: start;
+}
+
+.kanban-column {
+    min-height: 330px;
+
+    background: #eef2f7;
+
+    border: 1px solid #e1e7ef;
+
+    border-radius: 15px;
+
+    padding: 12px;
+
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease;
+}
+
+.kanban-column.drag-over {
+    background: #e9f1ff;
+
+    border-color: #8db5f3;
+}
+
+
+/* =========================
+   KANBAN HEADER
+========================= */
+
+.kanban-column-header {
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 10px;
+
+    padding: 5px 3px 12px;
+}
+
+.kanban-column-header h3 {
+    font-size: 13px;
+    font-weight: 700;
+
+    color: #344054;
+}
+
+.kanban-count {
+    min-width: 24px;
+    height: 24px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 0 7px;
+
+    border-radius: 7px;
+
+    background: white;
+
+    color: #667085;
+
+    font-size: 11px;
+    font-weight: 700;
+
+    border: 1px solid #e0e6ee;
+}
+
+
+/* =========================
+   KANBAN TASK CONTAINER
+========================= */
+
+.kanban-tasks {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 9px;
+
+    min-height: 275px;
+}
+
+
+/* =========================
+   KANBAN TASK
+========================= */
+
+.kanban-task {
+    background: white;
+
+    border: 1px solid #e0e6ee;
+
+    border-radius: 12px;
+
+    padding: 14px;
+
+    cursor: grab;
+
+    box-shadow:
+        0 4px 12px rgba(30, 60, 100, 0.05);
+
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        opacity 0.2s ease,
+        border-color 0.2s ease;
+
+    animation:
+        taskAppear 0.3s ease both;
+}
+
+.kanban-task:hover {
+    transform: translateY(-2px);
+
+    border-color: #c8d5e5;
+
+    box-shadow:
+        0 9px 20px rgba(30, 60, 100, 0.08);
+}
+
+.kanban-task:active {
+    cursor: grabbing;
+}
+
+.kanban-task.dragging {
+    opacity: 0.45;
+
+    transform: scale(0.97);
+}
+
+.kanban-task-content {
+    min-width: 0;
+}
+
+
+/* =========================
+   DATA CARD
+========================= */
+
+.data-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    gap: 20px;
+
+    padding: 20px 22px;
+
+    background: #eef5ff;
+
+    border: 1px solid #d9e8ff;
+
+    border-radius: 16px;
+}
+
+.data-card h3 {
+    font-size: 15px;
+}
+
+.data-card p {
+    margin-top: 4px;
+
+    font-size: 12px;
+    color: #70809a;
+}
+
+.data-actions {
+    display: flex;
+    gap: 8px;
+}
+
+
+/* =========================
+   SECONDARY BUTTON
+========================= */
+
+.secondary-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    height: 40px;
+
+    padding: 0 14px;
+
+    background: white;
+
+    border: 1px solid #d2deed;
+
+    border-radius: 9px;
+
+    color: #31557f;
+
+    font-size: 12px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition: 0.2s ease;
+}
+
+.secondary-btn:hover {
+    border-color: #9dbbe2;
+
+    background: #f8fbff;
+}
+
+
+/* =========================
+   DIALOG BACKDROP
+========================= */
+
+dialog::backdrop {
+    background: rgba(15, 23, 42, 0.48);
+
+    backdrop-filter: blur(4px);
+}
+
+
+/* =========================
+   TASK DETAIL DIALOG
+========================= */
+
+#taskDetailDialog,
+#newProjectDialog {
+    width: min(650px, 92%);
+
+    border: none;
+
+    border-radius: 18px;
+
+    padding: 0;
+
+    background: white;
+
+    color: #172033;
+
+    box-shadow:
+        0 25px 70px rgba(15, 23, 42, 0.22);
+
+    animation:
+        dialogIn 0.25s ease;
+}
+
+#taskDetailDialog {
+    max-height: 90vh;
+
+    overflow-y: auto;
+}
+
+
+/* =========================
+   DIALOG HEADER
+========================= */
+
+.dialog-header {
+    display: flex;
+
+    align-items: flex-start;
+    justify-content: space-between;
+
+    gap: 20px;
+
+    padding: 22px 24px;
+
+    border-bottom: 1px solid #edf0f5;
+}
+
+.dialog-header h2 {
+    font-size: 20px;
+
+    line-height: 1.3;
+
+    overflow-wrap: anywhere;
+}
+
+.close-btn {
+    width: 34px;
+    height: 34px;
+
+    flex-shrink: 0;
+
+    border: none;
+
+    border-radius: 8px;
+
+    background: #f3f5f8;
+
+    color: #667085;
+
+    font-size: 20px;
+
+    cursor: pointer;
+
+    transition: 0.2s ease;
+}
+
+.close-btn:hover {
+    background: #e9edf3;
+
+    color: #172033;
+}
+
+
+/* =========================
+   DETAIL BODY
+========================= */
+
+.detail-body {
+    padding: 22px 24px;
+}
+
+.detail-description {
+    padding: 14px;
+
+    margin-bottom: 20px;
+
+    background: #f8fafc;
+
+    border: 1px solid #e9edf3;
+
+    border-radius: 11px;
+
+    color: #667085;
+
+    font-size: 13px;
+
+    line-height: 1.6;
+}
+
+
+/* =========================
+   DETAIL GRID
+========================= */
+
+.detail-grid {
+    display: grid;
+
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+
+    gap: 14px;
+
+    margin-bottom: 22px;
+}
+
+.detail-field {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 7px;
+}
+
+.detail-field label {
+    font-size: 11px;
+
+    font-weight: 700;
+
+    color: #667085;
+
+    text-transform: uppercase;
+
+    letter-spacing: 0.5px;
+}
+
+.detail-field span {
+    min-height: 40px;
+
+    display: flex;
+
+    align-items: center;
+
+    padding: 0 12px;
+
+    background: #f8fafc;
+
+    border: 1px solid #e5eaf1;
+
+    border-radius: 9px;
+
+    color: #344054;
+
+    font-size: 13px;
+}
+
+
+/* =========================
+   NOTES
+========================= */
+
+.detail-section {
+    margin-top: 22px;
+}
+
+.detail-section-header {
+    display: flex;
+
+    justify-content: space-between;
+    align-items: center;
+
     margin-bottom: 10px;
 }
 
-.auth-actions {
-    display: flex;
-    gap: 10px;
-    margin-top: 10px;
+.detail-section-header h3 {
+    font-size: 14px;
 }
 
-.auth-actions button {
+#taskNotes {
+    min-height: 110px;
+}
+
+
+/* =========================
+   SUBTASKS
+========================= */
+
+.subtask-add {
+    display: flex;
+
+    gap: 8px;
+
+    margin-bottom: 12px;
+}
+
+.subtask-add input {
     flex: 1;
+}
+
+.subtask-add button {
+    flex-shrink: 0;
+}
+
+#subtaskList {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 8px;
+}
+
+.subtask-item {
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+
+    padding: 10px 12px;
+
+    background: #f8fafc;
+
+    border: 1px solid #e5eaf1;
+
+    border-radius: 9px;
+}
+
+.subtask-checkbox {
+    width: 17px;
+    height: 17px;
+
+    flex-shrink: 0;
+
+    cursor: pointer;
+
+    accent-color: #2563eb;
+}
+
+.subtask-item label {
+    flex: 1;
+
+    min-width: 0;
+
+    color: #344054;
+
+    font-size: 13px;
+
+    overflow-wrap: anywhere;
+}
+
+.subtask-item label.completed {
+    color: #98a2b3;
+
+    text-decoration: line-through;
+}
+
+.subtask-delete {
+    border: none;
+
+    background: transparent;
+
+    color: #98a2b3;
+
+    padding: 5px 7px;
+
+    border-radius: 6px;
+
+    font-size: 11px;
+
+    font-weight: 600;
+
+    cursor: pointer;
+}
+
+.subtask-delete:hover {
+    background: #fff1f1;
+
+    color: #dc3f3f;
+}
+
+.subtask-empty {
+    padding: 14px;
+
+    text-align: center;
+
+    color: #98a2b3;
+
+    font-size: 12px;
+
+    border: 1px dashed #dce3ec;
+
+    border-radius: 9px;
+}
+
+
+/* =========================
+   DIALOG ACTIONS
+========================= */
+
+.dialog-actions {
+    display: flex;
+
+    justify-content: flex-end;
+
+    gap: 9px;
+
+    padding: 18px 24px;
+
+    border-top: 1px solid #edf0f5;
+
+    background: #fbfcfe;
+}
+
+
+/* =========================
+   NEW PROJECT DIALOG
+========================= */
+
+#newProjectDialog {
+    max-width: 450px;
+}
+
+.project-dialog-body {
+    padding: 22px 24px;
+}
+
+.project-dialog-body p {
+    margin-bottom: 16px;
+
+    color: #718096;
+
+    font-size: 13px;
+
+    line-height: 1.5;
+}
+
+.project-dialog-body .input-group {
+    margin-bottom: 4px;
+}
+
+
+/* =========================
+   UNDO TOAST
+========================= */
+
+.undo-toast {
+    position: fixed;
+
+    right: 25px;
+    bottom: 25px;
+
+    z-index: 1000;
+
+    display: flex;
+    align-items: center;
+
+    gap: 20px;
+
+    padding: 13px 15px 13px 17px;
+
+    background: #172033;
+    color: white;
+
+    border-radius: 11px;
+
+    box-shadow:
+        0 15px 35px rgba(15, 23, 42, 0.25);
+
+    font-size: 13px;
+
+    animation:
+        toastIn 0.3s ease;
+}
+
+.undo-toast button {
+    border: none;
+
+    background: #3b82f6;
+
+    color: white;
+
+    padding: 7px 11px;
+
+    border-radius: 7px;
+
+    font-size: 12px;
+    font-weight: 700;
+
+    cursor: pointer;
+}
+
+.undo-toast button:hover {
+    background: #60a5fa;
+}
+
+
+/* =========================
+   ANIMATIONS
+========================= */
+
+@keyframes taskAppear {
+
+    from {
+        opacity: 0;
+
+        transform:
+            translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+
+        transform:
+            translateY(0);
+    }
+
+}
+
+
+@keyframes toastIn {
+
+    from {
+        opacity: 0;
+
+        transform:
+            translateY(15px);
+    }
+
+    to {
+        opacity: 1;
+
+        transform:
+            translateY(0);
+    }
+
+}
+
+
+@keyframes dialogIn {
+
+    from {
+        opacity: 0;
+
+        transform:
+            translateY(12px)
+            scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+
+        transform:
+            translateY(0)
+            scale(1);
+    }
+
+}
+
+
+/* =========================
+   RESPONSIVE - TABLET
+========================= */
+
+@media (max-width: 1050px) {
+
+    .add-task-card {
+        grid-template-columns:
+            1fr 1fr;
+    }
+
+    .add-task-card .primary-btn {
+        grid-column: 1 / -1;
+    }
+
+    .kanban-board {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+
+}
+
+
+/* =========================
+   RESPONSIVE - 850px
+========================= */
+
+@media (max-width: 850px) {
+
+    .controls-card {
+        grid-template-columns: 1fr;
+    }
+
+    .filter-row {
+        width: fit-content;
+    }
+
+    .sort-box {
+        justify-content: space-between;
+    }
+
+    .view-toggle {
+        width: fit-content;
+    }
+
+    .projects-header {
+        align-items: flex-start;
+
+        flex-direction: column;
+    }
+
+}
+
+
+/* =========================
+   RESPONSIVE - MOBILE
+========================= */
+
+@media (max-width: 600px) {
+
+    .app-container {
+        width: 94%;
+
+        padding: 30px 0;
+    }
+
+
+    .app-header {
+        align-items: flex-start;
+
+        gap: 18px;
+    }
+
+
+    .app-header h1 {
+        font-size: 34px;
+    }
+
+
+    .task-count {
+        min-width: 65px;
+
+        padding: 10px;
+    }
+
+
+    .add-task-card {
+        grid-template-columns: 1fr;
+    }
+
+    .add-task-card .primary-btn {
+        grid-column: auto;
+    }
+
+
+    .filter-row {
+        width: 100%;
+
+        display: grid;
+
+        grid-template-columns:
+            repeat(4, 1fr);
+    }
+
+
+    .filter-btn {
+        padding: 8px 4px;
+    }
+
+
+    .sort-box {
+        flex-direction: column;
+
+        align-items: stretch;
+    }
+
+
+    .sort-box select {
+        width: 100%;
+    }
+
+
+    .view-toggle {
+        width: 100%;
+    }
+
+    .view-toggle button {
+        flex: 1;
+    }
+
+
+    .kanban-board {
+        grid-template-columns: 1fr;
+    }
+
+
+    .kanban-column {
+        min-height: 220px;
+    }
+
+
+    .kanban-tasks {
+        min-height: 150px;
+    }
+
+
+    .progress-info {
+        align-items: flex-start;
+
+        flex-direction: column;
+
+        gap: 4px;
+    }
+
+
+    .task-item {
+        padding: 14px;
+
+        gap: 10px;
+    }
+
+
+    .delete-btn {
+        padding: 6px;
+    }
+
+
+    .detail-grid {
+        grid-template-columns: 1fr;
+    }
+
+
+    .dialog-header {
+        padding: 18px;
+    }
+
+
+    .detail-body {
+        padding: 18px;
+    }
+
+
+    .dialog-actions {
+        padding: 15px 18px;
+    }
+
+
+    .subtask-add {
+        flex-direction: column;
+    }
+
+
+    .subtask-add button {
+        width: 100%;
+    }
+
+
+    .data-card {
+        flex-direction: column;
+
+        align-items: flex-start;
+    }
+
+
+    .data-actions {
+        width: 100%;
+    }
+
+
+    .secondary-btn {
+        flex: 1;
+    }
+
+
+    .undo-toast {
+        left: 15px;
+        right: 15px;
+        bottom: 15px;
+
+        justify-content:
+            space-between;
+    }
+
 }
