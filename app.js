@@ -1728,3 +1728,67 @@ if (taskForm) {
     );
 
 }
+/* =====================================================
+   PROJECT SELECTION
+===================================================== */
+
+if (projectSelect) {
+
+    projectSelect.addEventListener(
+        "change",
+        () => {
+
+            activeProjectId =
+                projectSelect.value || null;
+
+            updateTaskDisplay();
+
+        }
+    );
+
+}
+
+
+/* =====================================================
+   PROJECT MODAL
+===================================================== */
+
+if (newProjectBtn) {
+
+    newProjectBtn.addEventListener(
+        "click",
+        () => {
+
+            if (projectModal) {
+                projectModal.hidden = false;
+            }
+
+            if (projectNameInput) {
+                projectNameInput.value = "";
+                projectNameInput.focus();
+            }
+
+        }
+    );
+
+}
+
+
+/* =====================================================
+   CLOSE PROJECT MODAL
+===================================================== */
+
+if (closeProjectModalBtn) {
+
+    closeProjectModalBtn.addEventListener(
+        "click",
+        () => {
+
+            if (projectModal) {
+                projectModal.hidden = true;
+            }
+
+        }
+    );
+
+}
