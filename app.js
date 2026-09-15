@@ -710,3 +710,528 @@ if (registerForm) {
         }
     );
 }
+/* =========================================================
+   PART 2 / 5
+   LOGIN + LOGOUT + ADMIN DASHBOARD
+========================================================= */
+
+
+/* =========================================================
+   LOGIN
+========================================================= */
+
+if (loginForm) {
+
+    loginForm.addEventListener(
+        "submit",
+        event => {
+
+            event.preventDefault();
+
+            const email =
+                loginEmail
+                    ? loginEmail.value.trim().toLowerCase()
+                    : "";
+
+            const password =
+                loginPassword
+                    ? loginPassword.value
+                    : "";
+
+
+            if (loginError) {
+                loginError.textContent = "";
+            }
+
+
+            /* =========================
+               MASTER ADMIN LOGIN
+            ========================= */
+
+            if (
+                email === "admin@taskmanager.com" &&
+                password === "admin123"
+            ) {
+
+                currentUser =
+                    getMasterUser();
+
+                setCurrentUser(
+                    currentUser
+                );
+
+
+                tasks = [];
+                projects = [];
+                activeProjectId = null;
+
+
+                if (loginForm) {
+                    loginForm.reset();
+                }
+
+
+                showAdminDashboard();
+
+                updateAdminDashboard();
+
+                renderAdminBoard();
+
+                return;
+            }
+
+
+            /* =========================
+               NORMAL USER LOGIN
+            ========================= */
+
+            const user =
+                findUserByEmail(email);
+
+
+            if (
+                !user ||
+                user.password !== password
+            ) {
+
+                if (loginError) {
+
+                    loginError.textContent =
+                        "Invalid email or password.";
+                }
+
+                return;
+            }
+
+
+            currentUser =
+                user;
+
+            setCurrentUser(
+                currentUser
+            );
+
+
+            loadCurrentUserData();
+
+            ensureDefaultProject();
+
+
+            if (loginForm) {
+                loginForm.reset();
+            }
+
+
+            showUserApp();
+
+            updateUI();
+        }
+    );
+}
+
+
+/* =========================================================
+   LOGOUT
+========================================================= */
+
+if (logoutBtn) {
+
+    logoutBtn.addEventListener(
+        "click",
+        () => {
+
+            clearCurrentUser();
+
+
+            currentUser = null;
+
+            tasks = [];
+
+            projects = [];
+
+            activeProjectId = null;
+
+            searchTerm = "";
+
+            currentFilter = "All";
+
+            currentSort = "newest";
+
+            currentView = "list";
+
+
+            showLoginForm();
+        }
+    );
+}
+
+
+/* =========================================================
+   ADMIN USER STATISTICS
+========================================================= */
+
+function getAdminUserStats() {
+
+    const users =
+        getAllRegularUsers();
+
+
+    return users.map(
+        user => {
+
+            const userTasks =
+                loadUserTasksForAdmin(
+                    user.id
+                );
+
+
+            const total =
+                userTasks.length;
+
+
+            const completed =
+                userTasks.filter(
+                    task =>
+                        task.status === "Done"
+                ).length;
+
+
+            const pending =
+                total - completed;
+
+
+            const progress =
+                total > 0
+                    ? Math.round(
+                        (completed / total) * 100
+                    )
+                    : 0;
+
+
+            return {
+
+                user,
+
+                tasks:
+                    userTasks,
+
+                total,
+
+                completed,
+
+                pending,
+
+                progress
+            };
+        }
+    );
+}
+
+
+/* =========================================================
+   ADMIN SUMMARY
+========================================================= */
+
+function updateAdminSummary() {
+
+    const users =
+        getAllRegularUsers();
+
+
+    let totalTasks = 0;
+
+    let completedTasks = 0;
+
+
+    users.forEach(
+        user => {
+
+            const userTasks =
+                loadUserTasksForAdmin(
+                    user.id
+                );
+
+
+            totalTasks +=
+                userTasks.length;
+
+
+            completedTasks +=
+                userTasks.filter(
+                    task =>
+                        task.status === "Done"
+                ).length;
+        }
+    );
+
+
+    const pendingTasks =
+        totalTasks -
+        completedTasks;
+
+
+    if (adminTotalUsers) {
+
+        adminTotalUsers.textContent =
+            users.length;
+    }
+
+
+    if (adminTotalTasks) {
+
+        adminTotalTasks.textContent =
+            totalTasks;
+    }
+
+
+    if (adminPendingTasks) {
+
+        adminPendingTasks.textContent =
+            pendingTasks;
+    }
+
+
+    if (adminCompletedTasks) {
+
+        adminCompletedTasks.textContent =
+            completedTasks;
+    }
+
+
+    if (
+        typeof renderAdminSummary ===
+        "function"
+    ) {
+
+        renderAdminSummary({
+
+            totalUsers:
+                users.length,
+
+            totalTasks,
+
+            pendingTasks,
+
+            completedTasks
+        });
+    }
+}
+
+
+/* =========================================================
+   ADMIN USERS
+========================================================= */
+
+function updateAdminUsers() {
+
+    const users =
+        getAllRegularUsers();
+
+
+    const stats =
+        getAdminUserStats();
+
+
+    if (
+        typeof renderAdminUsers ===
+        "function"
+    ) {
+
+        renderAdminUsers(
+            users,
+            stats
+        );
+    }
+}
+
+
+/* =========================================================
+   ADMIN REPORTS
+========================================================= */
+
+function updateAdminReports() {
+
+    const users =
+        getAllRegularUsers();
+
+
+    const stats =
+        getAdminUserStats();
+
+
+    if (
+        typeof renderAdminReports ===
+        "function"
+    ) {
+
+        renderAdminReports(
+            users,
+            stats
+        );
+    }
+}
+
+
+/* =========================================================
+   ADMIN USER SELECT
+========================================================= */
+
+function populateAdminUserSelect() {
+
+    if (!adminUserSelect) return;
+
+
+    const users =
+        getAllRegularUsers();
+
+
+    adminUserSelect.innerHTML =
+        `<option value="">Select User</option>`;
+
+
+    users.forEach(
+        user => {
+
+            const option =
+                document.createElement(
+                    "option"
+                );
+
+
+            option.value =
+                user.id;
+
+
+            option.textContent =
+                `${user.name} (${user.email})`;
+
+
+            adminUserSelect.appendChild(
+                option
+            );
+        }
+    );
+}
+
+
+/* =========================================================
+   ADMIN PROJECT SELECT
+========================================================= */
+
+function updateAdminProjectOptions(
+    userId
+) {
+
+    if (!adminTaskProject) return;
+
+
+    adminTaskProject.innerHTML =
+        `<option value="">No Project</option>`;
+
+
+    if (!userId) return;
+
+
+    const userProjects =
+        loadProjects(userId);
+
+
+    userProjects.forEach(
+        project => {
+
+            const option =
+                document.createElement(
+                    "option"
+                );
+
+
+            option.value =
+                project.id;
+
+
+            option.textContent =
+                project.name;
+
+
+            adminTaskProject.appendChild(
+                option
+            );
+        }
+    );
+}
+
+
+/* =========================================================
+   ADMIN DASHBOARD
+========================================================= */
+
+function updateAdminDashboard() {
+
+    if (!currentUser) return;
+
+    if (currentUser.role !== "admin")
+        return;
+
+
+    updateAdminSummary();
+
+    updateAdminUsers();
+
+    updateAdminReports();
+
+    populateAdminUserSelect();
+}
+
+
+/* =========================================================
+   ADMIN USER SELECT CHANGE
+========================================================= */
+
+if (adminUserSelect) {
+
+    adminUserSelect.addEventListener(
+        "change",
+        () => {
+
+            updateAdminProjectOptions(
+                adminUserSelect.value
+            );
+        }
+    );
+}
+
+
+/* =========================================================
+   ADMIN REFRESH REPORTS
+========================================================= */
+
+if (refreshAdminReportsBtn) {
+
+    refreshAdminReportsBtn.addEventListener(
+        "click",
+        () => {
+
+            updateAdminDashboard();
+
+            renderAdminBoard();
+        }
+    );
+}
+
+
+/* =========================================================
+   ADMIN OPEN TASK MANAGER
+========================================================= */
+
+if (adminOpenTaskManagerBtn) {
+
+    adminOpenTaskManagerBtn.addEventListener(
+        "click",
+        () => {
+
+            alert(
+                "Master Admin is using the Admin Dashboard."
+            );
+        }
+    );
+}
