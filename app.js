@@ -1490,3 +1490,132 @@ function updateTaskDisplay() {
     }
 
 }
+/* =====================================================
+   SEARCH
+===================================================== */
+
+if (searchInput) {
+
+    searchInput.addEventListener(
+        "input",
+        () => {
+
+            searchText =
+                searchInput.value;
+
+            updateTaskDisplay();
+
+        }
+    );
+
+}
+
+
+/* =====================================================
+   CLEAR SEARCH
+===================================================== */
+
+if (clearSearchBtn) {
+
+    clearSearchBtn.addEventListener(
+        "click",
+        () => {
+
+            if (searchInput) {
+                searchInput.value = "";
+            }
+
+            searchText = "";
+
+            updateTaskDisplay();
+
+        }
+    );
+
+}
+
+
+/* =====================================================
+   SORT
+===================================================== */
+
+if (sortSelect) {
+
+    sortSelect.addEventListener(
+        "change",
+        () => {
+
+            updateTaskDisplay();
+
+        }
+    );
+
+}
+
+
+/* =====================================================
+   LIST VIEW
+===================================================== */
+
+if (listViewBtn) {
+
+    listViewBtn.addEventListener(
+        "click",
+        () => {
+
+            currentView = "list";
+
+            listViewBtn.classList.add("active");
+
+            if (boardViewBtn) {
+                boardViewBtn.classList.remove("active");
+            }
+
+            if (taskList) {
+                taskList.hidden = false;
+            }
+
+            if (board) {
+                board.hidden = true;
+            }
+
+            updateTaskDisplay();
+
+        }
+    );
+
+}
+
+
+/* =====================================================
+   BOARD VIEW
+===================================================== */
+
+if (boardViewBtn) {
+
+    boardViewBtn.addEventListener(
+        "click",
+        () => {
+
+            currentView = "board";
+
+            boardViewBtn.classList.add("active");
+
+            if (listViewBtn) {
+                listViewBtn.classList.remove("active");
+            }
+
+            if (taskList) {
+                taskList.hidden = true;
+            }
+
+            if (board) {
+                board.hidden = false;
+            }
+
+            updateTaskDisplay();
+
+        }
+    );
+
+}
