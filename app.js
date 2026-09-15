@@ -1034,3 +1034,181 @@ if (refreshAdminReportsBtn) {
     );
 
 }
+/* =====================================================
+   ADMIN - ASSIGN TASK TO USER
+===================================================== */
+
+if (adminAssignTaskForm) {
+
+    adminAssignTaskForm.addEventListener(
+        "submit",
+        event => {
+
+            event.preventDefault();
+
+
+            /* =========================
+               ADMIN CHECK
+            ========================= */
+
+            if (
+                !currentUser ||
+                !isAdmin(currentUser)
+            ) {
+
+                return;
+
+            }
+
+
+            /* =========================
+               GET FORM VALUES
+            ========================= */
+
+            const userId =
+                adminUserSelect
+                    ? adminUserSelect.value
+                    : "";
+
+
+            const title =
+                adminTaskTitle
+                    ? adminTaskTitle.value.trim()
+                    : "";
+
+
+            const description =
+                adminTaskDescription
+                    ? adminTaskDescription.value.trim()
+                    : "";
+
+
+            const category =
+                adminTaskCategory
+                    ? adminTaskCategory.value
+                    : "Work";
+
+
+            const priority =
+                adminTaskPriority
+                    ? adminTaskPriority.value
+                    : "Normal";
+
+
+            const dueDate =
+                adminTaskDueDate
+                    ? adminTaskDueDate.value
+                    : "";
+
+
+            const projectId =
+                adminTaskProject
+                    ? adminTaskProject.value
+                    : "";
+
+
+            /* =========================
+               VALIDATION
+            ========================= */
+
+            if (!userId) {
+
+                if (adminAssignMessage) {
+
+                    adminAssignMessage.textContent =
+                        "Please select a user.";
+
+                }
+
+                return;
+
+            }
+
+
+            if (!title) {
+
+                if (adminAssignMessage) {
+
+                    adminAssignMessage.textContent =
+                        "Please enter a task title.";
+
+                }
+
+                return;
+
+            }
+
+
+            /* =========================
+               CREATE TASK
+            ========================= */
+
+            const newTask =
+                createAssignedTask(
+                    userId,
+                    {
+                        text:
+                            title,
+
+                        description:
+                            description,
+
+                        category:
+                            category,
+
+                        priority:
+                            priority,
+
+                        dueDate:
+                            dueDate,
+
+                        projectId:
+                            projectId || null
+
+                    }
+                );
+
+
+            if (!newTask) {
+
+                if (adminAssignMessage) {
+
+                    adminAssignMessage.textContent =
+                        "Could not assign task.";
+
+                }
+
+                return;
+
+            }
+
+
+            /* =========================
+               SUCCESS MESSAGE
+            ========================= */
+
+            if (adminAssignMessage) {
+
+                adminAssignMessage.textContent =
+                    "Task assigned successfully.";
+
+            }
+
+
+            /* =========================
+               RESET FORM
+            ========================= */
+
+            adminAssignTaskForm.reset();
+
+
+            /* =========================
+               REFRESH DASHBOARD
+            ========================= */
+
+            updateAdminDashboard();
+
+        }
+    );
+
+}
