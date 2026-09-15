@@ -1619,3 +1619,34 @@ if (boardViewBtn) {
     );
 
 }
+/* =====================================================
+   CATEGORY FILTER BUTTONS
+===================================================== */
+
+const categoryButtons =
+    document.querySelectorAll(
+        "[data-category]"
+    );
+
+categoryButtons.forEach(button => {
+
+    button.addEventListener(
+        "click",
+        () => {
+
+            categoryButtons.forEach(
+                btn =>
+                    btn.classList.remove("active")
+            );
+
+            button.classList.add("active");
+
+            activeCategory =
+                button.dataset.category;
+
+            updateTaskDisplay();
+
+        }
+    );
+
+});
