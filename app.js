@@ -2339,3 +2339,108 @@ document.addEventListener(
 
     }
 );
+/* =====================================================
+   DRAG & DROP
+===================================================== */
+
+document.addEventListener(
+    "dragstart",
+    event => {
+
+        const draggable =
+            event.target.closest(
+                "[data-task-id]"
+            );
+
+        if (!draggable) {
+            return;
+        }
+
+        draggedTaskId =
+            draggable.dataset.taskId;
+
+        event.dataTransfer.effectAllowed =
+            "move";
+
+    }
+);
+
+
+document.addEventListener(
+    "dragover",
+    event => {
+
+        const dropZone =
+            event.target.closest(
+                "[data-drop-status]"
+            );
+
+        if (!dropZone) {
+            return;
+        }
+
+        event.preventDefault();
+
+        event.dataTransfer.dropEffect =
+            "move";
+
+    }
+);
+
+
+document.addEventListener(
+    "drop",
+    event => {
+
+        const dropZone =
+            event.target.closest(
+                "[data-drop-status]"
+            );
+
+        if (!dropZone) {
+            return;
+        }
+
+        event.preventDefault();
+
+        if (!draggedTaskId) {
+            return;
+        }
+
+        const newStatus =
+            dropZone.dataset.dropStatus;
+
+        const task =
+            tasks.find(
+                item =>
+                    item.id === draggedTaskId
+            );
+
+        if (!task) {
+            return;
+        }
+
+        task.status =
+            newStatus;
+
+        task.updatedAt =
+            new Date().toISOString();
+
+        saveTasks(tasks);
+
+        draggedTaskId = null;
+
+        updateTaskDisplay();
+
+    }
+);
+
+
+document.addEventListener(
+    "dragend",
+    () => {
+
+        draggedTaskId = null;
+
+    }
+);
