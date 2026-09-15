@@ -1650,3 +1650,81 @@ categoryButtons.forEach(button => {
     );
 
 });
+/* =====================================================
+   ADD NEW TASK
+===================================================== */
+
+if (taskForm) {
+
+    taskForm.addEventListener(
+        "submit",
+        event => {
+
+            event.preventDefault();
+
+            if (
+                !currentUser ||
+                isAdmin(currentUser)
+            ) {
+                return;
+            }
+
+            const title =
+                taskInput
+                    ? taskInput.value.trim()
+                    : "";
+
+            const category =
+                categorySelect
+                    ? categorySelect.value
+                    : "Work";
+
+            if (!title) {
+                return;
+            }
+
+            const newTask = {
+
+                id: crypto.randomUUID(),
+
+                text: title,
+
+                category: category,
+
+                status: "To Do",
+
+                priority: "Normal",
+
+                dueDate: "",
+
+                description: "",
+
+                notes: "",
+
+                subtasks: [],
+
+                projectId:
+                    activeProjectId,
+
+                createdAt:
+                    new Date().toISOString(),
+
+                updatedAt:
+                    new Date().toISOString()
+
+            };
+
+            tasks.unshift(newTask);
+
+            saveTasks(tasks);
+
+            if (taskInput) {
+                taskInput.value = "";
+            }
+
+            updateTaskDisplay();
+
+        }
+    );
+
+}
