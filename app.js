@@ -3375,6 +3375,7 @@ function startApplication() {
    INITIAL START
 ========================================================= */
 
+console.log("STARTING APP", getCurrentUser());
 startApplication();
 
 
