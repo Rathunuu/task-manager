@@ -1340,3 +1340,153 @@ const undoToast =
 
 const undoDeleteBtn =
     document.getElementById("undoDeleteBtn");
+/* =====================================================
+   TASK FILTERING
+===================================================== */
+
+function getFilteredTasks() {
+
+    let filteredTasks = [...tasks];
+
+    /* PROJECT FILTER */
+    if (activeProjectId) {
+        filteredTasks =
+            filteredTasks.filter(
+                task =>
+                    task.projectId === activeProjectId
+            );
+    }
+
+    /* CATEGORY FILTER */
+    if (activeCategory !== "All") {
+        filteredTasks =
+            filteredTasks.filter(
+                task =>
+                    task.category === activeCategory
+            );
+    }
+
+    /* SEARCH */
+    if (searchText.trim()) {
+
+        const search =
+            searchText
+                .trim()
+                .toLowerCase();
+
+        filteredTasks =
+            filteredTasks.filter(task => {
+
+                const title =
+                    String(task.text || "")
+                        .toLowerCase();
+
+                const description =
+                    String(task.description || "")
+                        .toLowerCase();
+
+                const notes =
+                    String(task.notes || "")
+                        .toLowerCase();
+
+                return (
+                    title.includes(search) ||
+                    description.includes(search) ||
+                    notes.includes(search)
+                );
+
+            });
+    }
+
+    /* SORT */
+    if (sortSelect) {
+
+        const sortValue =
+            sortSelect.value;
+
+        if (sortValue === "newest") {
+
+            filteredTasks.sort(
+                (a, b) =>
+                    new Date(b.createdAt || 0) -
+                    new Date(a.createdAt || 0)
+            );
+
+        }
+
+        if (sortValue === "oldest") {
+
+            filteredTasks.sort(
+                (a, b) =>
+                    new Date(a.createdAt || 0) -
+                    new Date(b.createdAt || 0)
+            );
+
+        }
+
+        if (sortValue === "priority") {
+
+            const priorityOrder = {
+                "Urgent": 1,
+                "High": 2,
+                "Normal": 3,
+                "Low": 4
+            };
+
+            filteredTasks.sort(
+                (a, b) =>
+                    (priorityOrder[a.priority] || 5) -
+                    (priorityOrder[b.priority] || 5)
+            );
+
+        }
+
+    }
+
+    return filteredTasks;
+}
+
+
+/* =====================================================
+   UPDATE TASK DISPLAY
+===================================================== */
+
+function updateTaskDisplay() {
+
+    const filteredTasks =
+        getFilteredTasks();
+
+    if (currentView === "board") {
+
+        renderBoard(filteredTasks);
+
+    } else {
+
+        renderTasks(filteredTasks);
+
+    }
+
+    if (activeProjectId) {
+
+        const activeProject =
+            projects.find(
+                project =>
+                    project.id === activeProjectId
+            );
+
+        const projectTasks =
+            tasks.filter(
+                task =>
+                    task.projectId === activeProjectId
+            );
+
+        if (activeProject) {
+            renderProgress(
+                activeProject,
+                projectTasks
+            );
+        }
+
+    }
+
+}
