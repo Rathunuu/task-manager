@@ -900,3 +900,732 @@ if (registerForm) {
     );
 
 }
+/* =========================================================
+   LOGIN
+========================================================= */
+
+if (loginForm) {
+
+    loginForm.addEventListener("submit", event => {
+
+        event.preventDefault();
+
+        const email =
+            loginEmail.value.trim().toLowerCase();
+
+        const password =
+            loginPassword.value;
+
+        loginError.textContent = "";
+
+
+        /* =========================
+           MASTER ADMIN LOGIN
+        ========================= */
+
+        if (
+            email === "admin@taskmanager.com" &&
+            password === "admin123"
+        ) {
+
+            currentUser = {
+                id: "master-admin",
+                name: "Master Admin",
+                email: "admin@taskmanager.com",
+                role: "admin"
+            };
+
+            setCurrentUser(currentUser);
+
+            tasks = [];
+            projects = [];
+            activeProjectId = null;
+
+            loginForm.reset();
+
+            showAdminDashboard();
+
+            updateAdminDashboard();
+
+            return;
+        }
+
+
+        /* =========================
+           NORMAL USER LOGIN
+        ========================= */
+
+        const user =
+            findUserByEmail(email);
+
+
+        if (!user || user.password !== password) {
+
+            loginError.textContent =
+                "Invalid email or password.";
+
+            return;
+        }
+
+
+        currentUser = user;
+
+        setCurrentUser(currentUser);
+
+        tasks = loadTasks();
+        projects = loadProjects();
+
+        ensureDefaultProject();
+
+        loginForm.reset();
+
+        showUserApp();
+
+        updateUI();
+    });
+}
+
+
+/* =========================================================
+   LOGOUT
+========================================================= */
+
+if (logoutBtn) {
+
+    logoutBtn.addEventListener("click", () => {
+
+        clearCurrentUser();
+
+        currentUser = null;
+
+        tasks = [];
+        projects = [];
+
+        activeProjectId = null;
+
+        showLoginForm();
+    });
+}
+
+
+/* =========================================================
+   ADMIN DATA
+========================================================= */
+
+function getAdminUsers() {
+
+    return getAllRegularUsers();
+}
+
+
+/* =========================================================
+   ADMIN USER STATISTICS
+========================================================= */
+
+function getAdminUserStats() {
+
+    const users =
+        getAdminUsers();
+
+    return users.map(user => {
+
+        const userTasks =
+            loadUserTasksForAdmin(user.id);
+
+        const total =
+            userTasks.length;
+
+        const completed =
+            userTasks.filter(
+                task => task.status === "Done"
+            ).length;
+
+        const pending =
+            total - completed;
+
+        const progress =
+            total > 0
+                ? Math.round(
+                    (completed / total) * 100
+                )
+                : 0;
+
+        return {
+            user,
+            tasks: userTasks,
+            total,
+            completed,
+            pending,
+            progress
+        };
+    });
+}
+
+
+/* =========================================================
+   ADMIN SUMMARY
+========================================================= */
+
+function updateAdminSummary() {
+
+    const users =
+        getAdminUsers();
+
+    let totalTasks = 0;
+    let completedTasks = 0;
+
+    users.forEach(user => {
+
+        const userTasks =
+            loadUserTasksForAdmin(user.id);
+
+        totalTasks += userTasks.length;
+
+        completedTasks +=
+            userTasks.filter(
+                task => task.status === "Done"
+            ).length;
+    });
+
+
+    const pendingTasks =
+        totalTasks - completedTasks;
+
+
+    if (adminTotalUsers) {
+
+        adminTotalUsers.textContent =
+            users.length;
+    }
+
+
+    if (adminTotalTasks) {
+
+        adminTotalTasks.textContent =
+            totalTasks;
+    }
+
+
+    if (adminPendingTasks) {
+
+        adminPendingTasks.textContent =
+            pendingTasks;
+    }
+
+
+    if (adminCompletedTasks) {
+
+        adminCompletedTasks.textContent =
+            completedTasks;
+    }
+
+
+    renderAdminSummary({
+
+        totalUsers: users.length,
+
+        totalTasks,
+
+        pendingTasks,
+
+        completedTasks
+    });
+}
+
+
+/* =========================================================
+   ADMIN USERS
+========================================================= */
+
+function updateAdminUsers() {
+
+    const users =
+        getAdminUsers();
+
+    const stats =
+        getAdminUserStats();
+
+
+    renderAdminUsers(
+        users,
+        stats
+    );
+}
+
+
+/* =========================================================
+   ADMIN REPORTS
+========================================================= */
+
+function updateAdminReports() {
+
+    const users =
+        getAdminUsers();
+
+    const stats =
+        getAdminUserStats();
+
+
+    renderAdminReports(
+        users,
+        stats
+    );
+}
+
+
+/* =========================================================
+   ADMIN DASHBOARD UPDATE
+========================================================= */
+
+function updateAdminDashboard() {
+
+    if (!currentUser) return;
+
+    if (currentUser.role !== "admin") return;
+
+
+    updateAdminSummary();
+
+    updateAdminUsers();
+
+    updateAdminReports();
+
+    populateAdminUserSelect();
+}
+
+
+/* =========================================================
+   ADMIN USER SELECT
+========================================================= */
+
+function populateAdminUserSelect() {
+
+    if (!adminUserSelect) return;
+
+
+    const users =
+        getAdminUsers();
+
+
+    adminUserSelect.innerHTML =
+        `<option value="">Select User</option>`;
+
+
+    users.forEach(user => {
+
+        const option =
+            document.createElement("option");
+
+        option.value =
+            user.id;
+
+        option.textContent =
+            `${user.name} (${user.email})`;
+
+        adminUserSelect.appendChild(option);
+    });
+}
+
+
+/* =========================================================
+   ADMIN ASSIGN TASK
+========================================================= */
+
+if (adminAssignTaskForm) {
+
+    adminAssignTaskForm.addEventListener(
+        "submit",
+        event => {
+
+            event.preventDefault();
+
+
+            const userId =
+                adminUserSelect.value;
+
+            const title =
+                adminTaskTitle.value.trim();
+
+            const description =
+                adminTaskDescription.value.trim();
+
+            const category =
+                adminTaskCategory.value;
+
+            const priority =
+                adminTaskPriority.value;
+
+            const dueDate =
+                adminTaskDueDate.value;
+
+            const projectId =
+                adminTaskProject
+                    ? adminTaskProject.value
+                    : null;
+
+
+            /* =========================
+               VALIDATION
+            ========================= */
+
+            if (!userId) {
+
+                adminAssignMessage.textContent =
+                    "Please select a user.";
+
+                return;
+            }
+
+
+            if (!title) {
+
+                adminAssignMessage.textContent =
+                    "Please enter a task title.";
+
+                return;
+            }
+
+
+            /* =========================
+               CREATE TASK
+            ========================= */
+
+            const createdTask =
+                createAssignedTask(
+                    userId,
+                    {
+                        text: title,
+
+                        description,
+
+                        category,
+
+                        priority,
+
+                        dueDate,
+
+                        projectId
+                    }
+                );
+
+
+            if (!createdTask) {
+
+                adminAssignMessage.textContent =
+                    "Could not assign task.";
+
+                return;
+            }
+
+
+            /* =========================
+               SUCCESS
+            ========================= */
+
+            adminAssignMessage.textContent =
+                "Task assigned successfully!";
+
+
+            adminAssignTaskForm.reset();
+
+
+            updateAdminDashboard();
+
+
+            setTimeout(() => {
+
+                if (adminAssignMessage) {
+
+                    adminAssignMessage.textContent =
+                        "";
+                }
+
+            }, 3000);
+        }
+    );
+}
+
+
+/* =========================================================
+   ADMIN USER CHANGE
+========================================================= */
+
+if (adminUserSelect) {
+
+    adminUserSelect.addEventListener(
+        "change",
+        () => {
+
+            updateAdminProjectOptions(
+                adminUserSelect.value
+            );
+        }
+    );
+}
+
+
+/* =========================================================
+   ADMIN PROJECT OPTIONS
+========================================================= */
+
+function updateAdminProjectOptions(userId) {
+
+    if (!adminTaskProject) return;
+
+
+    adminTaskProject.innerHTML =
+        `<option value="">No Project</option>`;
+
+
+    if (!userId) return;
+
+
+    const userProjects =
+        loadProjectsForUser(userId);
+
+
+    userProjects.forEach(project => {
+
+        const option =
+            document.createElement("option");
+
+        option.value =
+            project.id;
+
+        option.textContent =
+            project.name;
+
+        adminTaskProject.appendChild(option);
+    });
+}
+
+
+/* =========================================================
+   ADMIN REFRESH
+========================================================= */
+
+if (refreshAdminReportsBtn) {
+
+    refreshAdminReportsBtn.addEventListener(
+        "click",
+        () => {
+
+            updateAdminDashboard();
+        }
+    );
+}
+
+
+/* =========================================================
+   OPEN USER TASK MANAGER
+========================================================= */
+
+if (adminOpenTaskManagerBtn) {
+
+    adminOpenTaskManagerBtn.addEventListener(
+        "click",
+        () => {
+
+            if (!currentUser) return;
+
+
+            if (currentUser.role === "admin") {
+
+                alert(
+                    "Master Admin cannot open a personal task manager."
+                );
+
+                return;
+            }
+
+
+            showUserApp();
+
+            updateUI();
+        }
+    );
+}
+
+
+/* =========================================================
+   ADMIN BOARD
+========================================================= */
+
+function renderAdminBoard() {
+
+    const users =
+        getAdminUsers();
+
+
+    const allTasks = [];
+
+
+    users.forEach(user => {
+
+        const userTasks =
+            loadUserTasksForAdmin(user.id);
+
+
+        userTasks.forEach(task => {
+
+            allTasks.push({
+
+                ...task,
+
+                assignedUser:
+                    user.name,
+
+                assignedUserId:
+                    user.id
+            });
+        });
+    });
+
+
+    const todo =
+        allTasks.filter(
+            task => task.status === "To Do"
+        );
+
+    const inProgress =
+        allTasks.filter(
+            task => task.status === "In Progress"
+        );
+
+    const inReview =
+        allTasks.filter(
+            task => task.status === "In Review"
+        );
+
+    const done =
+        allTasks.filter(
+            task => task.status === "Done"
+        );
+
+
+    if (adminTodoTasks) {
+
+        adminTodoTasks.innerHTML =
+            "";
+
+        todo.forEach(task => {
+
+            const card =
+                createAdminTaskCard(task);
+
+            adminTodoTasks.appendChild(card);
+        });
+    }
+
+
+    if (adminInProgressTasks) {
+
+        adminInProgressTasks.innerHTML =
+            "";
+
+        inProgress.forEach(task => {
+
+            const card =
+                createAdminTaskCard(task);
+
+            adminInProgressTasks.appendChild(card);
+        });
+    }
+
+
+    if (adminInReviewTasks) {
+
+        adminInReviewTasks.innerHTML =
+            "";
+
+        inReview.forEach(task => {
+
+            const card =
+                createAdminTaskCard(task);
+
+            adminInReviewTasks.appendChild(card);
+        });
+    }
+
+
+    if (adminDoneTasks) {
+
+        adminDoneTasks.innerHTML =
+            "";
+
+        done.forEach(task => {
+
+            const card =
+                createAdminTaskCard(task);
+
+            adminDoneTasks.appendChild(card);
+        });
+    }
+}
+
+
+/* =========================================================
+   ADMIN TASK CARD
+========================================================= */
+
+function createAdminTaskCard(task) {
+
+    const card =
+        document.createElement("div");
+
+    card.className =
+        "admin-task-card";
+
+
+    card.innerHTML = `
+
+        <div class="admin-task-title">
+            ${escapeHtml(task.text)}
+        </div>
+
+        <div class="admin-task-user">
+            👤 ${escapeHtml(task.assignedUser)}
+        </div>
+
+        <div class="admin-task-meta">
+            <span>${escapeHtml(task.category || "Work")}</span>
+            <span>${escapeHtml(task.priority || "Normal")}</span>
+        </div>
+
+    `;
+
+
+    return card;
+}
+
+
+/* =========================================================
+   HTML ESCAPE
+========================================================= */
+
+function escapeHtml(value) {
+
+    return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+}
+
+
+/* =========================================================
+   INITIAL ADMIN CHECK
+========================================================= */
+
+if (
+    currentUser &&
+    currentUser.role === "admin"
+) {
+
+    showAdminDashboard();
+
+    updateAdminDashboard();
+
+    renderAdminBoard();
+}
